@@ -108,6 +108,8 @@ public:
 	int m_iWeaponFlash;		// brightness of the weapon flash
 	float m_flStopExtraSoundTime;
 
+	bool m_bMovementCrippled = false;
+
 	float m_flFlashLightTime; // Time until next battery draw/Recharge
 	int m_iFlashBattery;	  // Flashlight Battery Draw
 
@@ -281,9 +283,11 @@ public:
 	bool AddPlayerItem(CBasePlayerItem* pItem) override;
 	bool RemovePlayerItem(CBasePlayerItem* pItem) override;
 	void DropPlayerItem(char* pszItemName);
+	void ForceDropPlayerItem(char* pszItemName);
 	bool HasPlayerItem(CBasePlayerItem* pCheckItem);
 	bool HasNamedPlayerItem(const char* pszItemName);
 	bool HasWeapons(); // do I have ANY weapons?
+	unsigned int WeaponCount();
 	void SelectPrevItem(int iItem);
 	void SelectNextItem(int iItem);
 	void SelectLastItem();

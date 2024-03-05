@@ -257,6 +257,7 @@ void CBasePlayer::RenewItems() {}
 bool CBasePlayer::Restore(CRestore& restore) { return false; }
 void CBasePlayer::SelectNextItem(int iItem) {}
 bool CBasePlayer::HasWeapons() { return false; }
+unsigned int CBasePlayer::WeaponCount() { return 0; }
 void CBasePlayer::SelectPrevItem(int iItem) {}
 bool CBasePlayer::FlashlightIsOn() { return false; }
 void CBasePlayer::FlashlightTurnOn() {}
@@ -283,6 +284,7 @@ void CBasePlayer::ResetAutoaim() {}
 void CBasePlayer::SetCustomDecalFrames(int nFrames) {}
 int CBasePlayer::GetCustomDecalFrames() { return -1; }
 void CBasePlayer::DropPlayerItem(char* pszItemName) {}
+void CBasePlayer::ForceDropPlayerItem(char* pszItemName) {}
 bool CBasePlayer::HasPlayerItem(CBasePlayerItem* pCheckItem) { return false; }
 bool CBasePlayer::SwitchWeapon(CBasePlayerItem* pWeapon) { return false; }
 Vector CBasePlayer::GetGunPosition() { return g_vecZero; }

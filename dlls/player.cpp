@@ -117,6 +117,7 @@ TYPEDESCRIPTION CBasePlayer::m_playerSaveData[] =
 		//DEFINE_FIELD(CBasePlayer, m_flSndRange, FIELD_FLOAT),
 
 		DEFINE_FIELD(CBasePlayer, m_flStartCharge, FIELD_TIME),
+		DEFINE_FIELD(CBasePlayer, m_bMovementCrippled, FIELD_BOOLEAN),
 
 		//DEFINE_FIELD( CBasePlayer, m_fDeadTime, FIELD_FLOAT ), // only used in multiplayer games
 		//DEFINE_FIELD( CBasePlayer, m_fGameHUDInitialized, FIELD_INTEGER ), // only used in multiplayer games
@@ -300,6 +301,9 @@ Vector CBasePlayer::GetGunPosition()
 //=========================================================
 void CBasePlayer::TraceAttack(entvars_t* pevAttacker, float flDamage, Vector vecDir, TraceResult* ptr, int bitsDamageType)
 {
+	float RANDOMF = RANDOM_FLOAT(0, 1);
+	bool IsBulletDMG = (bitsDamageType & DMG_BULLET) != 0;
+
 	if (0 != pev->takedamage)
 	{
 		m_LastHitGroup = ptr->iHitgroup;
@@ -320,10 +324,24 @@ void CBasePlayer::TraceAttack(entvars_t* pevAttacker, float flDamage, Vector vec
 		case HITGROUP_LEFTARM:
 		case HITGROUP_RIGHTARM:
 			flDamage *= gSkillData.plrArm;
+			
+			if (IsBulletDMG && RANDOMF < 0.15f) // Half the time
+			{
+				ALERT(at_console, "Player has lost weapon: %s, with luck %f\n", m_pActiveItem->pszName(), RANDOMF);
+				DropPlayerItem(""); // We maybe don't need to give input as no input equals current weapon
+			}
+
 			break;
 		case HITGROUP_LEFTLEG:
 		case HITGROUP_RIGHTLEG:
 			flDamage *= gSkillData.plrLeg;
+
+			if (IsBulletDMG)
+			{
+				m_bMovementCrippled = true;
+				pev->maxspeed = 170;
+			}
+
 			break;
 		default:
 			break;
@@ -1772,6 +1790,16 @@ void CBasePlayer::PreThink()
 	if (g_fGameOver)
 		return; // intermission or finale
 
+	if (IsAlive())
+	{
+		if (m_bMovementCrippled && pev->maxspeed < 270)
+			pev->maxspeed += 10.0f * gpGlobals->frametime;
+		else
+		{
+			m_bMovementCrippled = false;
+		}
+	}
+
 	UTIL_MakeVectors(pev->v_angle); // is this still used?
 
 	ItemPreFrame();
@@ -3122,6 +3150,24 @@ bool CBasePlayer::HasWeapons()
 	}
 
 	return false;
+}
+
+unsigned int CBasePlayer::WeaponCount() 
+{ 
+	int numweapon = 0;
+
+	for (int i = 0; i < MAX_ITEM_TYPES; i++)
+	{
+		CBasePlayerItem* pWeapon = m_rgpPlayerItems[i];
+
+		while (pWeapon)
+		{
+			numweapon++;
+			pWeapon = pWeapon->m_pNext;
+		}
+	}
+
+	return numweapon - 1; // Don't know why but it is always: WeaponNum + 1. Thus we subtract one from it. @Alphenex53
 }
 
 void CBasePlayer::SelectPrevItem(int iItem)
@@ -4553,12 +4599,6 @@ int CBasePlayer::GetCustomDecalFrames()
 //=========================================================
 void CBasePlayer::DropPlayerItem(char* pszItemName)
 {
-	if (!g_pGameRules->IsMultiplayer() || (weaponstay.value > 0))
-	{
-		// no dropping in single player.
-		return;
-	}
-
 	if (0 == strlen(pszItemName))
 	{
 		// if this string has no length, the client didn't type a name!
@@ -4598,23 +4638,22 @@ void CBasePlayer::DropPlayerItem(char* pszItemName)
 			pWeapon = pWeapon->m_pNext;
 		}
 
-
 		// if we land here with a valid pWeapon pointer, that's because we found the
 		// item we want to drop and hit a BREAK;  pWeapon is the item.
 		if (pWeapon)
 		{
-			if (!g_pGameRules->GetNextBestWeapon(this, pWeapon))
-				return; // can't drop the item they asked for, may be our last item or something we can't holster
+			if (!g_pGameRules->GetNextBestWeapon(this, pWeapon, true) || WeaponCount() < 1)
+				return;
 
 			UTIL_MakeVectors(pev->angles);
-
 			ClearWeaponBit(pWeapon->m_iId); // take item off hud
 
 			CWeaponBox* pWeaponBox = (CWeaponBox*)CBaseEntity::Create("weaponbox", pev->origin + gpGlobals->v_forward * 10, pev->angles, edict());
+			SET_MODEL(pWeaponBox->edict(), pWeapon->pszWorldModel);
 			pWeaponBox->pev->angles.x = 0;
 			pWeaponBox->pev->angles.z = 0;
 			pWeaponBox->PackWeapon(pWeapon);
-			pWeaponBox->pev->velocity = gpGlobals->v_forward * 300 + gpGlobals->v_forward * 100;
+			pWeaponBox->pev->velocity = gpGlobals->v_forward * 100 + gpGlobals->v_forward * 25;
 
 			// drop half of the ammo for this weapon.
 			int iAmmoIndex;
@@ -4642,6 +4681,8 @@ void CBasePlayer::DropPlayerItem(char* pszItemName)
 		}
 	}
 }
+
+void CBasePlayer::ForceDropPlayerItem(char* pszItemName) { /* UNUSED */ }
 
 //=========================================================
 // HasPlayerItem Does the player already have this item?

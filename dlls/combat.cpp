@@ -839,6 +839,14 @@ bool CBaseMonster::TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, f
 	if (0 == pev->takedamage)
 		return false;
 
+	if ((pev->flags & FL_MONSTER) != 0 && (bitsDamageType & DMG_BULLET) != 0 && !FNullEnt(pevAttacker))
+	{
+		CBaseEntity* pInflictor = CBaseEntity::Instance(pevInflictor);
+		Vector spraydir = (Center() - pInflictor->Center()).Normalize();
+		
+		// gay valve removed particles I think
+	}
+
 	if (!IsAlive())
 	{
 		return DeadTakeDamage(pevInflictor, pevAttacker, flDamage, bitsDamageType);
@@ -959,6 +967,8 @@ bool CBaseMonster::TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, f
 			}
 		}
 	}
+
+	
 
 	return true;
 }
@@ -1529,7 +1539,10 @@ Vector CBaseEntity::FireBulletsPlayer(unsigned int cShots, Vector vecSrc, Vector
 		Vector vecEnd;
 
 		vecEnd = vecSrc + vecDir * flDistance;
+		Vector penetSource;
 		UTIL_TraceLine(vecSrc, vecEnd, dont_ignore_monsters, ENT(pev) /*pentIgnore*/, &tr);
+
+		penetSource = tr.vecEndPos;
 
 		// do damage, paint decals
 		if (tr.flFraction != 1.0)

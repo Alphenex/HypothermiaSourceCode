@@ -265,67 +265,63 @@ void W_Precache()
 
 	// custom items...
 
-	// common world objects
+	// Common World Objects
 	UTIL_PrecacheOther("item_suit");
 	UTIL_PrecacheOther("item_battery");
 	UTIL_PrecacheOther("item_antidote");
 	UTIL_PrecacheOther("item_security");
 	UTIL_PrecacheOther("item_longjump");
+	UTIL_PrecacheOther("weaponbox");
 
-	// shotgun
+	// Shotgun
 	UTIL_PrecacheOtherWeapon("weapon_shotgun");
 	UTIL_PrecacheOther("ammo_buckshot");
 
-	// crowbar
+	// Crowbar
 	UTIL_PrecacheOtherWeapon("weapon_crowbar");
 
-	// glock
+	// Glock
 	UTIL_PrecacheOtherWeapon("weapon_9mmhandgun");
 	UTIL_PrecacheOther("ammo_9mmclip");
 
-	// mp5
+	// MP5
 	UTIL_PrecacheOtherWeapon("weapon_9mmAR");
 	UTIL_PrecacheOther("ammo_9mmAR");
 	UTIL_PrecacheOther("ammo_ARgrenades");
 
-	// python
+	// Python
 	UTIL_PrecacheOtherWeapon("weapon_357");
 	UTIL_PrecacheOther("ammo_357");
 
-	// gauss
+	// Gauss
 	UTIL_PrecacheOtherWeapon("weapon_gauss");
 	UTIL_PrecacheOther("ammo_gaussclip");
 
-	// rpg
+	// RPG
 	UTIL_PrecacheOtherWeapon("weapon_rpg");
 	UTIL_PrecacheOther("ammo_rpgclip");
 
-	// crossbow
+	// Crossbow
 	UTIL_PrecacheOtherWeapon("weapon_crossbow");
 	UTIL_PrecacheOther("ammo_crossbow");
 
-	// egon
+	// Egon
 	UTIL_PrecacheOtherWeapon("weapon_egon");
 
-	// tripmine
+	// Tripmine
 	UTIL_PrecacheOtherWeapon("weapon_tripmine");
 
-	// satchel charge
+	// Satchel Charge
 	UTIL_PrecacheOtherWeapon("weapon_satchel");
 
-	// hand grenade
+	// Hand Grenade
 	UTIL_PrecacheOtherWeapon("weapon_handgrenade");
 
-	// squeak grenade
+	// Sueak Grenade
 	UTIL_PrecacheOtherWeapon("weapon_snark");
 
-	// hornetgun
+	// Hornetgun
 	UTIL_PrecacheOtherWeapon("weapon_hornetgun");
-
-	if (g_pGameRules->IsDeathmatch())
-	{
-		UTIL_PrecacheOther("weaponbox"); // container for dropped deathmatch weapons
-	}
 
 	g_sModelIndexFireball = PRECACHE_MODEL("sprites/zerogxplode.spr");	// fireball
 	g_sModelIndexWExplosion = PRECACHE_MODEL("sprites/WXplo1.spr");		// underwater fireball
@@ -405,6 +401,8 @@ void CBasePlayerItem::SetObjectCollisionBox()
 //=========================================================
 void CBasePlayerItem::FallInit()
 {
+	pszWorldModel = STRING(pev->model); // Worst Hack ever, holy fucking shit@Alphenex53 
+
 	pev->movetype = MOVETYPE_TOSS;
 	pev->solid = SOLID_BBOX;
 
