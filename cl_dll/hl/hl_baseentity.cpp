@@ -294,6 +294,7 @@ void CBasePlayer::AddPoints(int score, bool bAllowNegativeScore) {}
 void CBasePlayer::AddPointsToTeam(int score, bool bAllowNegativeScore) {}
 void CBasePlayer::TabulateAmmo() {}
 
+void CBasePlayer::InitializeEntities() {};
 void ClearMultiDamage() {}
 void ApplyMultiDamage(entvars_t* pevInflictor, entvars_t* pevAttacker) {}
 void AddMultiDamage(entvars_t* pevInflictor, CBaseEntity* pEntity, float flDamage, int bitsDamageType) {}

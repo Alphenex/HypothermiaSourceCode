@@ -17,6 +17,8 @@
 #include "particleman.h"
 extern IParticleMan* g_pParticleMan;
 
+#include "fog.h"
+
 void Game_AddObjects();
 
 extern Vector v_origin;
@@ -310,6 +312,8 @@ void DLLEXPORT HUD_CreateEntities()
 	Game_AddObjects();
 
 	GetClientVoiceMgr()->CreateEntities();
+
+	gFog.HUD_CreateEntities();
 }
 
 

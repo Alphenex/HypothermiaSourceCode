@@ -19,6 +19,7 @@
 //
 
 #include <SDL2/SDL_messagebox.h>
+#include <GLEW/glew.h>
 
 #include "hud.h"
 #include "cl_util.h"
@@ -125,6 +126,19 @@ static bool CL_InitClient()
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Fatal Error",
 			"This mod has detected that it is being run from a Valve game directory which is not supported\n"
 			"Run this mod from its intended location\n\nThe game will now shut down", nullptr);
+		return false;
+	}
+
+	GLenum err = glewInit();
+	if (err != GLEW_OK)
+	{
+		std::printf("%s\n", glewGetErrorString(err));
+
+		char errmsg[128];
+		sprintf_s(errmsg, 128 * sizeof(char), "%s", glewGetErrorString(err));
+
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Fatal Error", errmsg, nullptr);
+
 		return false;
 	}
 

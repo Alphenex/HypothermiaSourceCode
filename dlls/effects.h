@@ -218,3 +218,39 @@ public:
 	int m_iszSpriteName;
 	Vector m_firePosition;
 };
+
+//=========================================================
+// CEnvFog
+//=========================================================
+class CEnvFog : public CBaseEntity
+{
+public:
+	void Spawn(void);
+	void SendInitMessages(CBaseEntity* pPlayer = NULL);
+	bool KeyValue(KeyValueData* pkvd);
+	void UpdateFog(bool isOn, bool doBlend, CBaseEntity* pPlayer);
+	void Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
+
+	bool Save(CSave& save);
+	bool Restore(CRestore& restore);
+
+public:
+	static void SetCurrentEndDist(int enddist, float blendtime);
+	static int GetCurrentEndDist(void) { return g_iCurrentEndDist; }
+
+	static void FogThink(void);
+	static bool CheckBBox(edict_t* pplayer, edict_t* pedict);
+
+private:
+	static TYPEDESCRIPTION m_SaveData[];
+
+	int m_iStartDist;
+	int m_iEndDist;
+	float m_flBlendTime;
+	bool m_bActive;
+
+private:
+	static int g_iCurrentEndDist;
+	static int g_iIdealEndDist;
+	static float g_flBlendDoneTime;
+};

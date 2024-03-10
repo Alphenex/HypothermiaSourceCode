@@ -46,7 +46,7 @@ static int DEATHNOTICE_DISPLAY_TIME = 6;
 
 DeathNoticeItem rgDeathNoticeList[MAX_DEATHNOTICES + 1];
 
-float g_ColorBlue[3] = {0.6, 0.8, 1.0};
+float g_ColorBlue[3] = {0.0, 0.56, 1.0};
 float g_ColorRed[3] = {1.0, 0.25, 0.25};
 float g_ColorGreen[3] = {0.6, 1.0, 0.6};
 float g_ColorYellow[3] = {1.0, 0.7, 0.0};

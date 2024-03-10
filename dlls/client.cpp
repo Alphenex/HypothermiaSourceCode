@@ -47,6 +47,7 @@
 #include "pm_shared.h"
 #include "pm_defs.h"
 #include "UserMessages.h"
+#include "effects.h"
 
 DLL_GLOBAL unsigned int g_ulFrameCount;
 
@@ -728,6 +729,8 @@ void ServerActivate(edict_t* pEdictList, int edictCount, int clientMax)
 
 	// Link user messages here to make sure first client can get them...
 	LinkUserMessages();
+
+	CEnvFog::SetCurrentEndDist(0, 0);
 }
 
 
@@ -915,6 +918,8 @@ void StartFrame()
 	{
 		LoadNextMap();
 	}
+
+	CEnvFog::FogThink();
 }
 
 
@@ -1246,6 +1251,11 @@ int AddToFullPack(struct entity_state_s* state, int e, edict_t* ent, edict_t* ho
 	if (ent != host)
 	{
 		if (!ENGINE_CHECK_VISIBILITY((const struct edict_s*)ent, pSet))
+		{
+			return 0;
+		}
+
+		if (CEnvFog::CheckBBox(host, ent))
 		{
 			return 0;
 		}

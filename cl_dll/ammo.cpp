@@ -863,7 +863,7 @@ bool CHudAmmo::Draw(float flTime)
 	if (m_fFade > 0)
 		m_fFade -= (gHUD.m_flTimeDelta * 20);
 
-	UnpackRGB(r, g, b, RGB_YELLOWISH);
+	UnpackRGB(r, g, b, RGB_BLUEISH);
 
 	ScaleColors(r, g, b, a);
 

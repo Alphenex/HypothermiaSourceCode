@@ -2938,8 +2938,9 @@ void CBasePlayer::Precache()
 
 	if (gInitHUD)
 		m_fInitHUD = true;
-}
 
+	m_bSendMessages = true;
+}
 
 bool CBasePlayer::Save(CSave& save)
 {
@@ -3984,6 +3985,12 @@ reflecting all of the HUD state info.
 */
 void CBasePlayer::UpdateClientData()
 {
+	if (m_bSendMessages)
+	{
+		InitializeEntities();
+		m_bSendMessages = false;
+	}
+
 	const bool fullHUDInitRequired = m_fInitHUD != false;
 
 	if (m_fInitHUD)
@@ -4273,6 +4280,26 @@ void CBasePlayer::UpdateClientData()
 	m_bRestored = false;
 }
 
+//=========================================================
+// InitializeEntities
+//=========================================================
+void CBasePlayer ::InitializeEntities()
+{
+	edict_t* pEdict = g_engfuncs.pfnPEntityOfEntIndex(1);
+	CBaseEntity* pEntity;
+
+	for (int i = 0; i < gpGlobals->maxEntities; i++, pEdict++)
+	{
+		if ((bool)pEdict->free)
+			continue;
+
+		pEntity = CBaseEntity::Instance(pEdict);
+		if (!pEntity)
+			break;
+
+		pEntity->SendInitMessages(this);
+	}
+}
 
 //=========================================================
 // FBecomeProne - Overridden for the player to set the proper
