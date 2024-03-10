@@ -944,6 +944,12 @@ void CPushable::Touch(CBaseEntity* pOther)
 }
 
 
+// Very unnecessary float clamp func for use @Alphenex53
+float fclamp(float val, float min, float max)
+{
+	return fmin(fmax(val, min), max);
+}
+
 void CPushable::Move(CBaseEntity* pOther, bool push)
 {
 	entvars_t* pevToucher = pOther->pev;
@@ -993,10 +999,12 @@ void CPushable::Move(CBaseEntity* pOther, bool push)
 		pev->velocity.x = (pev->velocity.x * MaxSpeed() / length);
 		pev->velocity.y = (pev->velocity.y * MaxSpeed() / length);
 	}
+	
 	if (playerTouch)
 	{
-		pevToucher->velocity.x = pev->velocity.x;
-		pevToucher->velocity.y = pev->velocity.y;
+		// It makes the crates' rise exponentially and it not really useful anyway. @Alphenex53
+		//pevToucher->velocity.x = pev->velocity.x;
+		//pevToucher->velocity.y = pev->velocity.y;
 		if ((gpGlobals->time - m_soundTime) > 0.7)
 		{
 			m_soundTime = gpGlobals->time;

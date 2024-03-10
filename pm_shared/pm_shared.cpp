@@ -92,6 +92,7 @@ typedef struct hull_s
 #define STEP_SLOSH 6	// shallow liquid puddle
 #define STEP_WADE 7		// wading in liquid
 #define STEP_LADDER 8	// climbing ladder
+#define STEP_SNOW 9		// snow
 
 #define PLAYER_FATAL_FALL_SPEED 1024															  // approx 60 feet
 #define PLAYER_MAX_SAFE_FALL_SPEED 580															  // approx 20 feet

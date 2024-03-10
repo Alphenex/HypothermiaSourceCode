@@ -301,7 +301,8 @@ Vector CBasePlayer::GetGunPosition()
 //=========================================================
 void CBasePlayer::TraceAttack(entvars_t* pevAttacker, float flDamage, Vector vecDir, TraceResult* ptr, int bitsDamageType)
 {
-	float RANDOMF = RANDOM_FLOAT(0, 1);
+	int CrippleRNG = RANDOM_LONG(0, 100);
+	int DropWeaponRNG = RANDOM_LONG(0, 100);
 	bool IsBulletDMG = (bitsDamageType & DMG_BULLET) != 0;
 
 	if (0 != pev->takedamage)
@@ -324,10 +325,9 @@ void CBasePlayer::TraceAttack(entvars_t* pevAttacker, float flDamage, Vector vec
 		case HITGROUP_LEFTARM:
 		case HITGROUP_RIGHTARM:
 			flDamage *= gSkillData.plrArm;
-			
-			if (IsBulletDMG && RANDOMF < 0.15f) // Half the time
+
+			if (IsBulletDMG && DropWeaponRNG < 20) // Half the time
 			{
-				ALERT(at_console, "Player has lost weapon: %s, with luck %f\n", m_pActiveItem->pszName(), RANDOMF);
 				DropPlayerItem(""); // We maybe don't need to give input as no input equals current weapon
 			}
 
@@ -336,7 +336,7 @@ void CBasePlayer::TraceAttack(entvars_t* pevAttacker, float flDamage, Vector vec
 		case HITGROUP_RIGHTLEG:
 			flDamage *= gSkillData.plrLeg;
 
-			if (IsBulletDMG)
+			if (IsBulletDMG && CrippleRNG < 50)
 			{
 				m_bMovementCrippled = true;
 				pev->maxspeed = 170;
@@ -1771,7 +1771,7 @@ void CBasePlayer::UpdateStatusBar()
 
 
 #define CLIMB_SHAKE_FREQUENCY 22 // how many frames in between screen shakes when climbing
-#define MAX_CLIMB_SPEED 200		 // fastest vertical climbing speed possible
+#define MAX_CLIMB_SPEED 150		 // fastest vertical climbing speed possible
 #define CLIMB_SPEED_DEC 15		 // climbing deceleration rate
 #define CLIMB_PUNCH_X -7		 // how far to 'punch' client X axis when climbing
 #define CLIMB_PUNCH_Z 7			 // how far to 'punch' client Z axis when climbing
@@ -4642,7 +4642,7 @@ void CBasePlayer::DropPlayerItem(char* pszItemName)
 		// item we want to drop and hit a BREAK;  pWeapon is the item.
 		if (pWeapon)
 		{
-			if (!g_pGameRules->GetNextBestWeapon(this, pWeapon, true) || WeaponCount() < 1)
+			if (!g_pGameRules->GetNextBestWeapon(this, pWeapon, true) || WeaponCount() < 1 || !HasWeapons())
 				return;
 
 			UTIL_MakeVectors(pev->angles);

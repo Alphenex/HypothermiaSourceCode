@@ -2411,7 +2411,7 @@ bool CDeadHGrunt::KeyValue(KeyValueData* pkvd)
 	{
 		m_iPose = atoi(pkvd->szValue);
 		return true;
-	}
+	}	
 
 	return CBaseMonster::KeyValue(pkvd);
 }
@@ -2438,15 +2438,16 @@ void CDeadHGrunt::Spawn()
 		ALERT(at_console, "Dead hgrunt with bad pose\n");
 	}
 
-	// Corpses have less health
-	pev->health = 8;
+	if (pev->health <= 0)
+	{
+		pev->health = 8; // Default Health
+	}
 
 	// map old bodies onto new bodies
 	switch (pev->body)
 	{
 	case 0: // Grunt with Gun
 		pev->body = 0;
-		pev->skin = 0;
 		SetBodygroup(HEAD_GROUP, HEAD_GRUNT);
 		SetBodygroup(GUN_GROUP, GUN_MP5);
 		break;
@@ -2456,18 +2457,35 @@ void CDeadHGrunt::Spawn()
 		SetBodygroup(HEAD_GROUP, HEAD_COMMANDER);
 		SetBodygroup(GUN_GROUP, GUN_MP5);
 		break;
-	case 2: // Grunt no Gun
+	case 2: // Shotgunner with Gun
+		pev->body = 0;
+		pev->skin = 0;
+		SetBodygroup(HEAD_GROUP, HEAD_SHOTGUN);
+		SetBodygroup(GUN_GROUP, GUN_SHOTGUN);
+		break;
+	case 3: // Grunt no Gun
 		pev->body = 0;
 		pev->skin = 0;
 		SetBodygroup(HEAD_GROUP, HEAD_GRUNT);
 		SetBodygroup(GUN_GROUP, GUN_NONE);
 		break;
-	case 3: // Commander no Gun
+	case 4: // Commander no Gun
 		pev->body = 0;
 		pev->skin = 0;
 		SetBodygroup(HEAD_GROUP, HEAD_COMMANDER);
 		SetBodygroup(GUN_GROUP, GUN_NONE);
 		break;
+	case 5: // Shotgunner no Gun
+		pev->body = 0;
+		pev->skin = 0;
+		SetBodygroup(HEAD_GROUP, HEAD_SHOTGUN);
+		SetBodygroup(GUN_GROUP, GUN_NONE);
+		break;
+	default:
+		pev->body = 0;
+		pev->skin = 0;
+		SetBodygroup(HEAD_GROUP, HEAD_GRUNT);
+		SetBodygroup(GUN_GROUP, GUN_MP5);
 	}
 
 	MonsterInitDead();
