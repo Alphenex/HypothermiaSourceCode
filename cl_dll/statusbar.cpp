@@ -175,6 +175,9 @@ void CHudStatusBar::ParseStatusString(int line_num)
 
 bool CHudStatusBar::Draw(float fTime)
 {
+	if (!gHUD.HasSuit())
+		return true;
+
 	if (m_bReparseString)
 	{
 		for (int i = 0; i < MAX_STATUSBAR_LINES; i++)
