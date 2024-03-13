@@ -32,8 +32,9 @@
 
 extern int g_iUser1;
 
-// Pool of client side entities/entvars_t
-static entvars_t ev[MAX_WEAPONS + 1];
+//Weapons + player entity
+// Weapons + player entity
+static edict_t entities[MAX_WEAPONS + 1];
 static int num_ents = 0;
 
 // The entity we'll use to represent the local client
@@ -48,23 +49,6 @@ float g_flApplyVel = 0.0;
 bool g_irunninggausspred = false;
 
 Vector previousorigin;
-
-// HLDM Weapon placeholder entities.
-CGlock g_Glock;
-CCrowbar g_Crowbar;
-CPython g_Python;
-CMP5 g_Mp5;
-CCrossbow g_Crossbow;
-CShotgun g_Shotgun;
-CRpg g_Rpg;
-CGauss g_Gauss;
-CEgon g_Egon;
-CHgun g_HGun;
-CHandGrenade g_HandGren;
-CSatchel g_Satchel;
-CTripmine g_Tripmine;
-CSqueak g_Snark;
-
 
 /*
 ======================
@@ -86,6 +70,21 @@ void AlertMessage(ALERT_TYPE atype, const char* szFmt, ...)
 	gEngfuncs.Con_Printf(string);
 }
 
+void* PvAllocEntPrivateData(edict_t* pEdict, int32 cb)
+{
+	// Not quite the same as the engine's version, but good enough for what we need
+	if (pEdict->pvPrivateData)
+	{
+		delete[] pEdict->pvPrivateData;
+	}
+
+	pEdict->pvPrivateData = new byte[cb];
+
+	memset(pEdict->pvPrivateData, 0, cb);
+
+	return pEdict->pvPrivateData;
+}
+
 //Returns if it's multiplayer.
 //Mostly used by the client side weapons.
 bool bIsMultiplayer()
@@ -98,18 +97,27 @@ void LoadVModel(const char* szViewModel, CBasePlayer* m_pPlayer)
 	gEngfuncs.CL_LoadModel(szViewModel, &m_pPlayer->pev->viewmodel);
 }
 
-/*
-=====================
-HUD_PrepEntity
-
-Links the raw entity to an entvars_s holder.  If a player is passed in as the owner, then
-we set up the m_pPlayer field.
-=====================
-*/
-void HUD_PrepEntity(CBaseEntity* pEntity, CBasePlayer* pWeaponOwner)
+edict_t* HUD_AllocEdict()
 {
-	memset(&ev[num_ents], 0, sizeof(entvars_t));
-	pEntity->pev = &ev[num_ents++];
+	edict_t* pEdict = &entities[num_ents++];
+	memset(pEdict, 0, sizeof(edict_t));
+
+	// Needed so debug code doesn't assert
+	pEdict->v.pContainingEntity = pEdict;
+
+	return pEdict;
+}
+
+void HUD_PrepWeapon(CWeaponRegistry* pReg, CBasePlayer* pWeaponOwner)
+{
+	edict_t* pEdict = HUD_AllocEdict();
+
+	// Minor memory leak, doesn't make any difference compared to SDK code though
+	CBasePlayerWeapon* pEntity = pReg->GetFactory()(&pEdict->v);
+
+	pEntity->pev = &pEdict->v;
+
+	pEntity->pev->classname = MAKE_STRING(pReg->GetMapName());
 
 	pEntity->Precache();
 	pEntity->Spawn();
@@ -118,28 +126,29 @@ void HUD_PrepEntity(CBaseEntity* pEntity, CBasePlayer* pWeaponOwner)
 	{
 		ItemInfo info;
 
-		memset(&info, 0, sizeof(info));
+		pEntity->m_pPlayer = pWeaponOwner;
 
-		((CBasePlayerWeapon*)pEntity)->m_pPlayer = pWeaponOwner;
+		pEntity->GetItemInfo(&info);
 
-		((CBasePlayerWeapon*)pEntity)->GetItemInfo(&info);
-
-		CBasePlayerItem::ItemInfoArray[info.iId] = info;
-
-		const char* weaponName = ((info.iFlags & ITEM_FLAG_EXHAUSTIBLE) != 0) ? STRING(pEntity->pev->classname) : nullptr;
-
-		if (info.pszAmmo1 && '\0' != *info.pszAmmo1)
-		{
-			AddAmmoNameToAmmoRegistry(info.pszAmmo1, weaponName);
-		}
-
-		if (info.pszAmmo2 && '\0' != *info.pszAmmo2)
-		{
-			AddAmmoNameToAmmoRegistry(info.pszAmmo2, weaponName);
-		}
-
-		g_pWpns[info.iId] = (CBasePlayerWeapon*)pEntity;
+		g_pWpns[info.iId] = pEntity;
 	}
+}
+
+/*
+=====================
+HUD_PrepEntity
+Links the raw entity to an entvars_s holder.
+=====================
+*/
+void HUD_PrepEntity(CBaseEntity* pEntity)
+{
+	pEntity->pev = &HUD_AllocEdict()->v;
+
+	// Don't do this so we don't try to free statically allocated data
+	// pEntity->pev->pContainingEntity->pvPrivateData = pEntity;
+
+	pEntity->Precache();
+	pEntity->Spawn();
 }
 
 /*
@@ -437,6 +446,7 @@ void HUD_InitClientWeapons()
 	// Handled locally
 	g_engfuncs.pfnPlaybackEvent = HUD_PlaybackEvent;
 	g_engfuncs.pfnAlertMessage = AlertMessage;
+	g_engfuncs.pfnPvAllocEntPrivateData = PvAllocEntPrivateData;
 
 	// Pass through to engine
 	g_engfuncs.pfnPrecacheEvent = gEngfuncs.pfnPrecacheEvent;
@@ -447,23 +457,13 @@ void HUD_InitClientWeapons()
 	g_engfuncs.pfnCVarGetFloat = gEngfuncs.pfnGetCvarFloat;
 
 	// Allocate a slot for the local player
-	HUD_PrepEntity(&player, NULL);
+	HUD_PrepEntity(&player);
 
 	// Allocate slot(s) for each weapon that we are going to be predicting
-	HUD_PrepEntity(&g_Glock, &player);
-	HUD_PrepEntity(&g_Crowbar, &player);
-	HUD_PrepEntity(&g_Python, &player);
-	HUD_PrepEntity(&g_Mp5, &player);
-	HUD_PrepEntity(&g_Crossbow, &player);
-	HUD_PrepEntity(&g_Shotgun, &player);
-	HUD_PrepEntity(&g_Rpg, &player);
-	HUD_PrepEntity(&g_Gauss, &player);
-	HUD_PrepEntity(&g_Egon, &player);
-	HUD_PrepEntity(&g_HGun, &player);
-	HUD_PrepEntity(&g_HandGren, &player);
-	HUD_PrepEntity(&g_Satchel, &player);
-	HUD_PrepEntity(&g_Tripmine, &player);
-	HUD_PrepEntity(&g_Snark, &player);
+	for (CWeaponRegistry* pReg = CWeaponRegistry::GetHead(); pReg; pReg = pReg->GetNext())
+	{
+		HUD_PrepWeapon(pReg, &player);
+	}
 }
 
 /*
@@ -529,63 +529,9 @@ void HUD_WeaponsPostThink(local_state_s* from, local_state_s* to, usercmd_t* cmd
 
 	// Fill in data based on selected weapon
 	// FIXME, make this a method in each weapon?  where you pass in an entity_state_t *?
-	switch (from->client.m_iId)
+	if (from->client.m_iId > 0 && from->client.m_iId < MAX_WEAPONS)
 	{
-	case WEAPON_CROWBAR:
-		pWeapon = &g_Crowbar;
-		break;
-
-	case WEAPON_GLOCK:
-		pWeapon = &g_Glock;
-		break;
-
-	case WEAPON_PYTHON:
-		pWeapon = &g_Python;
-		break;
-
-	case WEAPON_MP5:
-		pWeapon = &g_Mp5;
-		break;
-
-	case WEAPON_CROSSBOW:
-		pWeapon = &g_Crossbow;
-		break;
-
-	case WEAPON_SHOTGUN:
-		pWeapon = &g_Shotgun;
-		break;
-
-	case WEAPON_RPG:
-		pWeapon = &g_Rpg;
-		break;
-
-	case WEAPON_GAUSS:
-		pWeapon = &g_Gauss;
-		break;
-
-	case WEAPON_EGON:
-		pWeapon = &g_Egon;
-		break;
-
-	case WEAPON_HORNETGUN:
-		pWeapon = &g_HGun;
-		break;
-
-	case WEAPON_HANDGRENADE:
-		pWeapon = &g_HandGren;
-		break;
-
-	case WEAPON_SATCHEL:
-		pWeapon = &g_Satchel;
-		break;
-
-	case WEAPON_TRIPMINE:
-		pWeapon = &g_Tripmine;
-		break;
-
-	case WEAPON_SNARK:
-		pWeapon = &g_Snark;
-		break;
+		pWeapon = g_pWpns[from->client.m_iId];
 	}
 
 	// Store pointer to our destination entity_state_t so we can get our origin, etc. from it
@@ -771,8 +717,17 @@ void HUD_WeaponsPostThink(local_state_s* from, local_state_s* to, usercmd_t* cmd
 	//  over the wire ( fixes some animation glitches )
 	if (g_runfuncs && (HUD_GetWeaponAnim() != to->client.weaponanim))
 	{
+		// Pop the model to body 0.
+		if (FClassnameIs(pWeapon->pev, "weapon_tripmine"))
+		{
+			pWeapon->pev->body = 0;
+		}
+
 		//Make sure the 357 has the right body
-		g_Python.pev->body = bIsMultiplayer() ? 1 : 0;
+		if (FClassnameIs(pWeapon->pev, "weapon_357") && bIsMultiplayer())
+		{
+			pWeapon->pev->body = bIsMultiplayer() ? 1 : 0;
+		}
 
 		// Force a fixed anim down to viewmodel
 		HUD_SendWeaponAnim(to->client.weaponanim, pWeapon->pev->body, true);

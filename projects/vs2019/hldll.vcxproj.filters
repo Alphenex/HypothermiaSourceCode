@@ -626,5 +626,8 @@
     <ClInclude Include="Fire.h">
       <Filter>Header Files\dlls</Filter>
     </ClInclude>
+    <ClInclude Include="weaponman.h">
+      <Filter>Header Files\dlls</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

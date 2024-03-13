@@ -19,6 +19,8 @@
 #include "weapons.h"
 #include "gamerules.h"
 
+CWeaponRegistry* CWeaponRegistry::m_pHead = NULL;
+
 // Precaches the ammo and queues the ammo info for sending to clients
 void AddAmmoNameToAmmoRegistry(const char* szAmmoname, const char* weaponName)
 {
