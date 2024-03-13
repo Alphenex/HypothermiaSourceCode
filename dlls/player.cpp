@@ -118,6 +118,7 @@ TYPEDESCRIPTION CBasePlayer::m_playerSaveData[] =
 
 		DEFINE_FIELD(CBasePlayer, m_flStartCharge, FIELD_TIME),
 		DEFINE_FIELD(CBasePlayer, m_bMovementCrippled, FIELD_BOOLEAN),
+		DEFINE_FIELD(CBasePlayer, m_flStamina, FIELD_FLOAT)
 
 		//DEFINE_FIELD( CBasePlayer, m_fDeadTime, FIELD_FLOAT ), // only used in multiplayer games
 		//DEFINE_FIELD( CBasePlayer, m_fGameHUDInitialized, FIELD_INTEGER ), // only used in multiplayer games
@@ -301,14 +302,15 @@ Vector CBasePlayer::GetGunPosition()
 //=========================================================
 void CBasePlayer::TraceAttack(entvars_t* pevAttacker, float flDamage, Vector vecDir, TraceResult* ptr, int bitsDamageType)
 {
-	int CrippleRNG = RANDOM_LONG(0, 100);
-	int DropWeaponRNG = RANDOM_LONG(0, 100);
-	bool IsBulletDMG = (bitsDamageType & DMG_BULLET) != 0;
+	bool IsGodModeEnabled = (pev->flags & FL_GODMODE) != 0;
 
-	if (0 != pev->takedamage)
+	if (0 != pev->takedamage && !IsGodModeEnabled)
 	{
-		m_LastHitGroup = ptr->iHitgroup;
+		int CrippleRNG = RANDOM_LONG(0, 100);
+		int DropWeaponRNG = RANDOM_LONG(0, 100);
+		bool IsBulletDMG = (bitsDamageType & DMG_BULLET) != 0;
 
+		m_LastHitGroup = ptr->iHitgroup;
 		switch (ptr->iHitgroup)
 		{
 		case HITGROUP_GENERIC:
@@ -325,7 +327,7 @@ void CBasePlayer::TraceAttack(entvars_t* pevAttacker, float flDamage, Vector vec
 		case HITGROUP_LEFTARM:
 		case HITGROUP_RIGHTARM:
 			flDamage *= gSkillData.plrArm;
-
+			
 			if (IsBulletDMG && DropWeaponRNG < 20) // Half the time
 			{
 				DropPlayerItem(""); // We maybe don't need to give input as no input equals current weapon
@@ -1771,7 +1773,7 @@ void CBasePlayer::UpdateStatusBar()
 
 
 #define CLIMB_SHAKE_FREQUENCY 22 // how many frames in between screen shakes when climbing
-#define MAX_CLIMB_SPEED 150		 // fastest vertical climbing speed possible
+#define MAX_CLIMB_SPEED 75		 // fastest vertical climbing speed possible
 #define CLIMB_SPEED_DEC 15		 // climbing deceleration rate
 #define CLIMB_PUNCH_X -7		 // how far to 'punch' client X axis when climbing
 #define CLIMB_PUNCH_Z 7			 // how far to 'punch' client Z axis when climbing
@@ -1789,16 +1791,33 @@ void CBasePlayer::PreThink()
 
 	if (g_fGameOver)
 		return; // intermission or finale
-
-	if (IsAlive())
+	
+	int run = (pev->button & IN_SCORE) != 0;
+	int runNSuitNStamina = run * (int)HasSuit() * (m_flStamina >= 1.0) ? 1 : 0;
+	if (pev->button & IN_FORWARD)
 	{
-		if (m_bMovementCrippled && pev->maxspeed < 270)
-			pev->maxspeed += 10.0f * gpGlobals->frametime;
+		pev->maxspeed = 175 + 175 * runNSuitNStamina;
+	} 
+	else {
+		pev->maxspeed = 125 + 60 * runNSuitNStamina;
+	}
+
+	if (HasSuit())
+	{
+		if (!run) // if we aint running then slowly fill our stamina
+		{
+			m_flStamina += 5.0f * gpGlobals->frametime;
+		}
 		else
 		{
-			m_bMovementCrippled = false;
+			m_flStamina -= 10.0f * gpGlobals->frametime;
 		}
 	}
+
+	if (m_flStamina > 100) // Clamp Stamina please.
+		m_flStamina = 100;
+	else if (m_flStamina < 0)
+		m_flStamina = 0;
 
 	UTIL_MakeVectors(pev->v_angle); // is this still used?
 
@@ -2861,6 +2880,8 @@ void CBasePlayer::Spawn()
 	m_bloodColor = BLOOD_COLOR_RED;
 	m_flNextAttack = UTIL_WeaponTimeBase();
 	StartSneaking();
+
+	m_flStamina = 100.0f;
 
 	m_iFlashBattery = 99;
 	m_flFlashLightTime = 1; // force first message
@@ -4678,9 +4699,10 @@ void CBasePlayer::DropPlayerItem(char* pszItemName)
 			CWeaponBox* pWeaponBox = (CWeaponBox*)CBaseEntity::Create("weaponbox", pev->origin + gpGlobals->v_forward * 10, pev->angles, edict());
 			SET_MODEL(pWeaponBox->edict(), pWeapon->pszWorldModel);
 			pWeaponBox->pev->angles.x = 0;
+			pWeaponBox->pev->angles.y = pev->angles.y + RANDOM_LONG(164, 196);
 			pWeaponBox->pev->angles.z = 0;
 			pWeaponBox->PackWeapon(pWeapon);
-			pWeaponBox->pev->velocity = gpGlobals->v_forward * 100 + gpGlobals->v_forward * 25;
+			pWeaponBox->pev->velocity = gpGlobals->v_forward * 100 + gpGlobals->v_forward * 50;
 
 			// drop half of the ammo for this weapon.
 			int iAmmoIndex;

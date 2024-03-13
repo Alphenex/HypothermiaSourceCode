@@ -22,6 +22,13 @@ public:
 	bool Save(CSave& save) override;
 	bool Restore(CRestore& restore) override;
 
+	static CFire* CreateFire(Vector vPos, float flLifetime, float flDamage = 5.0f);
+	static CFire* BurnEntity(CBaseAnimating* pEnt, float flLifetime, float flDamage = 5.0f);
+	static CFire* BurnEntityUntilDead(CBaseAnimating* pEnt, float flDamage = 5.0f);
+
+private:
+	static void HurtEntity(CFire* self, CBaseEntity* pEnt);
+
 private:
 	void CreateSprite();
 
@@ -31,4 +38,9 @@ private:
 	CSprite* m_pSprite;
 	float m_flLifeTime;
 	bool m_bActive;
+
+	CBaseAnimating* m_pAttached;
+	bool m_bKillAttached;
+
+	bool m_bSpawnedIn;
 };

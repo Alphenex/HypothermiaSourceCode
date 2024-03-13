@@ -21,6 +21,7 @@
 #include "player.h"
 #include "gamerules.h"
 #include "UserMessages.h"
+#include "Fire.h"
 
 #ifndef CLIENT_DLL
 #define BOLT_AIR_VELOCITY 2000
@@ -85,6 +86,8 @@ void CCrossbowBolt::Precache()
 	PRECACHE_SOUND("weapons/xbow_hit1.wav");
 	PRECACHE_SOUND("fvox/beep.wav");
 	m_iTrail = PRECACHE_MODEL("sprites/streak.spr");
+
+	UTIL_PrecacheOther("env_fire");
 }
 
 
@@ -114,7 +117,8 @@ void CCrossbowBolt::BoltTouch(CBaseEntity* pOther)
 		}
 		else
 		{
-			pOther->TraceAttack(pevOwner, gSkillData.plrDmgCrossbowMonster, pev->velocity.Normalize(), &tr, DMG_BULLET | DMG_NEVERGIB);
+			//pOther->TraceAttack(pevOwner, gSkillData.plrDmgCrossbowMonster, pev->velocity.Normalize(), &tr, DMG_BULLET | DMG_NEVERGIB);
+			CFire::BurnEntityUntilDead((CBaseAnimating*)pOther);
 		}
 
 		ApplyMultiDamage(pev, pevOwner);

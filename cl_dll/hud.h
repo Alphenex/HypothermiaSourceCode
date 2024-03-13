@@ -374,6 +374,23 @@ private:
 //
 //-----------------------------------------------------
 //
+
+class CHudStamina : public CHudBase
+{
+public:
+	bool Init() override;
+	bool VidInit() override;
+	bool Draw(float flTime) override;
+	bool MsgFunc_Stamina(const char* pszName, int iSize, void* pbuf);
+
+private:
+	Rect* m_Rect;
+	int m_iWidth;
+};
+
+//
+//-----------------------------------------------------
+//
 const int maxHUDMessages = 16;
 struct message_parms_t
 {

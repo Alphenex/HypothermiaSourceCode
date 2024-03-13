@@ -86,6 +86,7 @@ void CFog::SetGLFog(Vector& color)
 	if (!m_fogParams.enddist && !m_fogParams.startdist)
 	{
 		gEngfuncs.pTriAPI->Fog(Vector(0, 0, 0), 0, 0, 0); 
+		gEngfuncs.pTriAPI->FogParams(0, 0);
 		glDisable(GL_FOG); // Disable Fog Mode
 		return;
 	}
@@ -99,6 +100,7 @@ void CFog::SetGLFog(Vector& color)
 	glFogf(GL_FOG_START, m_fogParams.startdist);
 	glFogf(GL_FOG_END, m_fogParams.enddist);
 
+	gEngfuncs.pTriAPI->FogParams(0, 0);
 	gEngfuncs.pTriAPI->Fog(color, m_fogParams.startdist, m_fogParams.enddist, 1);
 }
 /*

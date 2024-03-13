@@ -366,7 +366,7 @@
     <ClCompile Include="..\..\public\interface.cpp">
       <Filter>Source Files\public</Filter>
     </ClCompile>
-    <ClCompile Include="Fire.cpp">
+    <ClCompile Include="..\..\dlls\Fire.cpp">
       <Filter>Source Files\dlls</Filter>
     </ClCompile>
   </ItemGroup>
@@ -623,7 +623,7 @@
     <ClInclude Include="..\..\public\interface.h">
       <Filter>Header Files\public</Filter>
     </ClInclude>
-    <ClInclude Include="Fire.h">
+    <ClInclude Include="..\..\dlls\Fire.h">
       <Filter>Header Files\dlls</Filter>
     </ClInclude>
   </ItemGroup>

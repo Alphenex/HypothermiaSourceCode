@@ -375,6 +375,8 @@ public:
 	int m_fInAttack;
 
 	int m_fireState;
+
+	CBaseEntity* m_pFire;
 };
 
 inline bool FNullEnt(CBaseEntity* ent) { return (ent == NULL) || FNullEnt(ent->edict()); }
