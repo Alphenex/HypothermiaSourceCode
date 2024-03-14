@@ -1304,7 +1304,7 @@ void EV_EgonFire(event_args_t* args)
 
 	if (iStartup)
 	{
-		if (iFireMode == FIRE_WIDE)
+		if (iFireMode == 1)
 			gEngfuncs.pEventAPI->EV_PlaySound(idx, origin, CHAN_WEAPON, EGON_SOUND_STARTUP, 0.98, ATTN_NORM, 0, 125);
 		else
 			gEngfuncs.pEventAPI->EV_PlaySound(idx, origin, CHAN_WEAPON, EGON_SOUND_STARTUP, 0.9, ATTN_NORM, 0, 100);
@@ -1317,7 +1317,7 @@ void EV_EgonFire(event_args_t* args)
 		//This ensures no more than 1 of those is ever active at the same time.
 		gEngfuncs.pEventAPI->EV_StopSound(idx, CHAN_STATIC, EGON_SOUND_RUN);
 
-		if (iFireMode == FIRE_WIDE)
+		if (iFireMode == 1)
 			gEngfuncs.pEventAPI->EV_PlaySound(idx, origin, CHAN_STATIC, EGON_SOUND_RUN, 0.98, ATTN_NORM, 0, 125);
 		else
 			gEngfuncs.pEventAPI->EV_PlaySound(idx, origin, CHAN_STATIC, EGON_SOUND_RUN, 0.9, ATTN_NORM, 0, 100);
@@ -1387,7 +1387,7 @@ void EV_EgonFire(event_args_t* args)
 
 	if (pFlare) // Vit_amiN: store the last mode for EV_EgonStop()
 	{
-		pFlare->tentOffset.x = (iFireMode == FIRE_WIDE) ? 1.0f : 0.0f;
+		pFlare->tentOffset.x = (iFireMode == 1) ? 1.0f : 0.0f;
 	}
 }
 

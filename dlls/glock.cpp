@@ -78,14 +78,14 @@ bool CGlock::Deploy()
 	return DefaultDeploy("models/v_9mmhandgun.mdl", "models/p_9mmhandgun.mdl", GLOCK_DRAW, "onehanded");
 }
 
-void CGlock::SecondaryAttack()
-{
-	GlockFire(0.1, 0.2, false);
-}
-
 void CGlock::PrimaryAttack()
 {
 	GlockFire(0.01, 0.3, true);
+}
+
+void CGlock::SecondaryAttack()
+{
+	GlockFire(0.1f, 0.1f, false);
 }
 
 void CGlock::GlockFire(float flSpread, float flCycleTime, bool fUseAutoAim)

@@ -5,10 +5,15 @@ LINK_ENTITY_TO_CLASS(env_fire, CFire)
 TYPEDESCRIPTION CFire::m_SaveData[] =
 {
 		DEFINE_FIELD(CFire, m_pSprite, FIELD_CLASSPTR),
-		DEFINE_FIELD(CFire, m_pAttached, FIELD_CLASSPTR),
 		DEFINE_FIELD(CFire, m_flLifeTime, FIELD_FLOAT),
 		DEFINE_FIELD(CFire, m_bActive, FIELD_BOOLEAN),
-		DEFINE_FIELD(CFire, m_bKillAttached, FIELD_BOOLEAN)
+
+		DEFINE_FIELD(CFire, m_pAttachedEdict, FIELD_EDICT),
+		DEFINE_FIELD(CFire, m_bBurnAttachedTillDead, FIELD_BOOLEAN),
+		DEFINE_FIELD(CFire, m_pOwner, FIELD_CLASSPTR),
+		DEFINE_FIELD(CFire, m_bSpawnedIn, FIELD_BOOLEAN),
+
+		DEFINE_FIELD(CFire, m_fFireSoundTimer, FIELD_FLOAT)
 };
 IMPLEMENT_SAVERESTORE(CFire, CBaseEntity)
 
@@ -26,6 +31,7 @@ bool CFire::KeyValue(KeyValueData* pkvd)
 
 #define FIRE_SPRITE "sprites/prioryflame.spr"
 #define FIRE_LOOPSOUND "ambience/burning1.wav"
+#define FIRE_LOOPSOUNDLENGTH 5
 
 void CFire::Precache()
 {
@@ -40,9 +46,11 @@ void CFire::Spawn()
 	pev->movetype = MOVETYPE_NONE;
 	pev->solid = SOLID_TRIGGER;	
 
-	UTIL_SetSize(pev, Vector(-48, -48, -16), Vector(48, 48, 48));	
-
-	StartFire();
+	if (!m_bSpawnedIn)
+	{
+		UTIL_SetSize(pev, Vector(-48, -48, -16), Vector(48, 48, 48));
+		StartFire(); // Then create fire immediately, used so that map entities automatically start fire.
+	}
 
 	if (m_flLifeTime > 0.1f)
 		pev->ltime = gpGlobals->time + m_flLifeTime;
@@ -68,7 +76,14 @@ void CFire::Touch(CBaseEntity* pOther)
 
 void CFire::Think()
 {
-	if ((gpGlobals->time > pev->ltime && pev->ltime != -1 && m_bActive) || (m_bKillAttached && !m_pAttached->IsAlive()))
+	CBaseAnimating* animattached = nullptr;
+
+	if (m_bSpawnedIn)
+		animattached = (CBaseAnimating*)m_pAttachedEdict->pvPrivateData;
+
+	if ((gpGlobals->time > pev->ltime && pev->ltime != -1 && m_bActive) || // If the lifetime is passed.
+		(animattached && !m_bBurnAttachedTillDead && !animattached->IsAlive()) ||  // If we have attached object, have Kill flag, and it is dead.
+		(m_pAttachedEdict && animattached == nullptr)) // If attachment edict exists but it doesn't have private data.
 	{
 		KillFire();
 		return;
@@ -76,21 +91,21 @@ void CFire::Think()
 
 	if (m_bActive)
 	{
-		if (m_pAttached)
+		if (animattached && m_pAttachedEdict && m_pAttachedEdict->pvPrivateData != nullptr)
 		{
 			Vector attpelvispos;
 			Vector attanglepos;
 
 			// Nasty code, this shouldn't be done every Think BUT what we essentially do here is:
 			// We check if Pelvis bone exists, if it doesn't check 0th Bone, if that also doesn't exist just get Center.
-			m_pAttached->GetBonePosition(1, attpelvispos, attanglepos);
+			animattached->GetBonePosition(1, attpelvispos, attanglepos);
 			if (attpelvispos == Vector(0, 0, 0))
-				m_pAttached->GetBonePosition(0, attpelvispos, attanglepos);
+				animattached->GetBonePosition(0, attpelvispos, attanglepos);
 			if (attpelvispos == Vector(0, 0, 0))
-				attpelvispos = m_pAttached->Center();
+				attpelvispos = animattached->Center();
 			pev->origin = attpelvispos; // Move with the attached object!
 
-			HurtEntity(this, m_pAttached);
+			HurtEntity(this, animattached);
 		}
 
 		if (m_pSprite)
@@ -102,6 +117,12 @@ void CFire::Think()
 
 		if (m_bSpawnedIn)
 		{
+			if (gpGlobals->time > m_fFireSoundTimer)
+			{
+				EMIT_SOUND(edict(), CHAN_VOICE, FIRE_LOOPSOUND, 7.5f, 0.5f);
+				m_fFireSoundTimer = gpGlobals->time + FIRE_LOOPSOUNDLENGTH;
+			}
+
 			MESSAGE_BEGIN(MSG_BROADCAST, SVC_TEMPENTITY);
 			WRITE_BYTE(TE_DLIGHT);
 			WRITE_COORD(pev->origin.x); // origin
@@ -112,7 +133,7 @@ void CFire::Think()
 			WRITE_BYTE(80);	 // G
 			WRITE_BYTE(0);	 // B
 			WRITE_BYTE(10);	 // life * 10
-			WRITE_BYTE(16);	 // decay
+			WRITE_BYTE(32);	 // decay
 			MESSAGE_END();
 		}
 	}
@@ -133,6 +154,7 @@ void CFire::StartFire()
 
 void CFire::KillFire()
 {
+	STOP_SOUND(edict(), CHAN_VOICE, FIRE_LOOPSOUND);
 	UTIL_Remove(m_pSprite);
 	UTIL_Remove(this);
 }
@@ -145,36 +167,62 @@ CFire* CFire::CreateFire(Vector vPos, float flLifetime, float flDamage)
 	fire->pev->dmg = flDamage;
 	fire->m_bSpawnedIn = true;
 	fire->Spawn();
+	fire->StartFire();
 
 	return fire;
 }
 
-CFire* CFire::BurnEntity(CBaseAnimating* pEnt, float flLifetime, float flDamage)
+static int s_DontBurnList[] = {
+	CLASS_BARNACLE,
+	CLASS_MACHINE,
+	CLASS_NONE // We have no idea what it is, just don't burn it :(
+};
+
+CFire* CFire::BurnEntity(CBaseEntity* pEnt, CBaseEntity* pAttacker, float flLifetime, float flDamage)
 {
+	for (unsigned int i = 0; i < sizeof(s_DontBurnList) / sizeof(int); i++)
+	{
+		if (pEnt->Classify() == s_DontBurnList[i])
+			return nullptr;
+	}
+
+	if (pEnt->m_pFire)
+		return nullptr;
+
 	CFire* fire = GetClassPtr<CFire>(nullptr);
-	fire->m_pAttached = pEnt;
 	fire->pev->dmg = flDamage;
 	fire->m_flLifeTime = flLifetime;
 	fire->m_bSpawnedIn = true;
+	fire->m_pOwner = pAttacker;
+	fire->m_pAttachedEdict = pEnt->edict();
 	fire->Spawn();
+	fire->StartFire();
 
 	pEnt->m_pFire = fire;
 
 	return fire;
 }
 
-CFire* CFire::BurnEntityUntilDead(CBaseAnimating* pEnt, float flDamage)
+CFire* CFire::BurnEntityUntilDead(CBaseEntity* pEnt, CBaseEntity* pAttacker, float flDamage)
 {
-	if (!pEnt->IsAlive())
+	for (unsigned int i = 0; i < sizeof(s_DontBurnList) / sizeof(int); i++)
+	{
+		if (pEnt->Classify() == s_DontBurnList[i])
+			return nullptr;
+	}
+
+	if (!pEnt->IsAlive() || pEnt->m_pFire)
 		return nullptr;
 
 	CFire* fire = GetClassPtr<CFire>(nullptr);
-	fire->m_pAttached = pEnt;
 	fire->pev->dmg = flDamage;
 	fire->m_flLifeTime = -1;
-	fire->m_bKillAttached = true;
+	fire->m_bBurnAttachedTillDead = true;
 	fire->m_bSpawnedIn = true;
+	fire->m_pOwner = pAttacker;
+	fire->m_pAttachedEdict = pEnt->edict();
 	fire->Spawn();
+	fire->StartFire();
 
 	pEnt->m_pFire = fire;
 
@@ -190,7 +238,10 @@ void CFire::HurtEntity(CFire* self, CBaseEntity* pEnt)
 
 	float fldmg = self->pev->dmg * dps;
 
-	pEnt->TakeDamage(self->pev, self->pev, fldmg, DMG_BURN);
+	if (!self->m_pOwner)
+		pEnt->TakeDamage(self->pev, self->pev, fldmg, DMG_BURN);
+	else
+		pEnt->TakeDamage(self->pev, self->m_pOwner->pev, fldmg, DMG_BURN);
 
 	self->pev->pain_finished = gpGlobals->time;
 	self->pev->dmgtime = gpGlobals->time + dps; // half second delay until this trigger can hurt toucher again

@@ -919,18 +919,6 @@ enum egon_e
 	EGON_HOLSTER
 };
 
-enum EGON_FIRESTATE
-{
-	FIRE_OFF,
-	FIRE_CHARGE
-};
-
-enum EGON_FIREMODE
-{
-	FIRE_NARROW,
-	FIRE_WIDE
-};
-
 #define EGON_PRIMARY_VOLUME 450
 #define EGON_BEAM_SPRITE "sprites/xbeam1.spr"
 #define EGON_FLARE_SPRITE "sprites/XSpark1.spr"
@@ -977,8 +965,6 @@ public:
 
 	void UseAmmo(int count);
 
-	CBeam* m_pBeam;
-	CBeam* m_pNoise;
 	CSprite* m_pSprite;
 
 	bool UseDecrement() override
@@ -989,16 +975,8 @@ public:
 		return false;
 #endif
 	}
-
-	unsigned short m_usEgonStop;
-
 private:
 	float m_shootTime;
-	EGON_FIREMODE m_fireMode;
-	float m_shakeTime;
-	bool m_deployed;
-
-	unsigned short m_usEgonFire;
 };
 
 enum hgun_e

@@ -1804,14 +1804,11 @@ void CBasePlayer::PreThink()
 
 	if (HasSuit())
 	{
+		int moving = pev->button; moving &= (IN_FORWARD + IN_BACK + IN_MOVELEFT + IN_MOVERIGHT);
 		if (!run) // if we aint running then slowly fill our stamina
-		{
 			m_flStamina += 5.0f * gpGlobals->frametime;
-		}
-		else
-		{
+		else if (run && moving != 0)
 			m_flStamina -= 10.0f * gpGlobals->frametime;
-		}
 	}
 
 	if (m_flStamina > 100) // Clamp Stamina please.

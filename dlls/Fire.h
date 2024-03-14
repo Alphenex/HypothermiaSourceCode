@@ -23,8 +23,8 @@ public:
 	bool Restore(CRestore& restore) override;
 
 	static CFire* CreateFire(Vector vPos, float flLifetime, float flDamage = 5.0f);
-	static CFire* BurnEntity(CBaseAnimating* pEnt, float flLifetime, float flDamage = 5.0f);
-	static CFire* BurnEntityUntilDead(CBaseAnimating* pEnt, float flDamage = 5.0f);
+	static CFire* BurnEntity(CBaseEntity* pEnt, CBaseEntity* pAttacker = nullptr, float flLifetime = -1.0f, float flDamage = 5.0f);
+	static CFire* BurnEntityUntilDead(CBaseEntity* pEnt, CBaseEntity* pAttacker = nullptr, float flDamage = 5.0f);
 
 private:
 	static void HurtEntity(CFire* self, CBaseEntity* pEnt);
@@ -39,8 +39,10 @@ private:
 	float m_flLifeTime;
 	bool m_bActive;
 
-	CBaseAnimating* m_pAttached;
-	bool m_bKillAttached;
-
+	edict_t* m_pAttachedEdict; // Edicts are generally safer, this is used so that once the Attached doesn't exist anymore we know about it.
+	bool m_bBurnAttachedTillDead;
+	CBaseEntity* m_pOwner;
 	bool m_bSpawnedIn;
+
+	float m_fFireSoundTimer;
 };

@@ -118,7 +118,7 @@ void CCrossbowBolt::BoltTouch(CBaseEntity* pOther)
 		else
 		{
 			//pOther->TraceAttack(pevOwner, gSkillData.plrDmgCrossbowMonster, pev->velocity.Normalize(), &tr, DMG_BULLET | DMG_NEVERGIB);
-			CFire::BurnEntityUntilDead((CBaseAnimating*)pOther);
+			CFire* fire = CFire::BurnEntityUntilDead(pOther);
 		}
 
 		ApplyMultiDamage(pev, pevOwner);
