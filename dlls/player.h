@@ -108,8 +108,6 @@ public:
 	int m_iWeaponFlash;		// brightness of the weapon flash
 	float m_flStopExtraSoundTime;
 
-	bool m_bMovementCrippled = false;
-
 	float m_flFlashLightTime; // Time until next battery draw/Recharge
 	int m_iFlashBattery;	  // Flashlight Battery Draw
 
@@ -141,6 +139,7 @@ public:
 
 	// Player Stamina
 	float m_flStamina;
+	float m_flStaminaTimer; // Once we run out of stamina, this is how long it will take to start refilling
 
 	float m_flSuitUpdate;						 // when to play next suit update
 	int m_rgSuitPlayList[CSUITPLAYLIST];		 // next sentencenum to play for suit update
@@ -175,9 +174,12 @@ public:
 	bool m_fNoPlayerSound; // a debugging feature. Player makes no sound if this is true.
 	bool m_fLongJump;	   // does this player have the longjump module?
 
+	float m_flWeaponDropTimer;
+
 	float m_tSneaking;
 	int m_iUpdateTime;	  // stores the number of frame ticks before sending HUD update messages
 	int m_iClientHealth;  // the health currently known by the client.  If this changes, send a new
+	int m_iClientStamina;
 	int m_iClientBattery; // the Battery currently known by the client.  If this changes, send a new
 	int m_iHideHUD;		  // the players hud weapon info is to be hidden
 	int m_iClientHideHUD;

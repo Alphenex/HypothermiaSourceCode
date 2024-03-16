@@ -86,6 +86,22 @@ void AlertMessage(ALERT_TYPE atype, const char* szFmt, ...)
 	gEngfuncs.Con_Printf(string);
 }
 
+void* PvAllocEntPrivateData(edict_t* pEdict, int32 cb)
+{
+	// Not quite the same as the engine's version, but good enough for what we need
+	if (pEdict->pvPrivateData)
+	{
+		delete[] pEdict->pvPrivateData;
+	}
+
+	pEdict->pvPrivateData = new byte[cb];
+
+	memset(pEdict->pvPrivateData, 0, cb);
+
+	return pEdict->pvPrivateData;
+}
+
+
 //Returns if it's multiplayer.
 //Mostly used by the client side weapons.
 bool bIsMultiplayer()
@@ -437,6 +453,7 @@ void HUD_InitClientWeapons()
 	// Handled locally
 	g_engfuncs.pfnPlaybackEvent = HUD_PlaybackEvent;
 	g_engfuncs.pfnAlertMessage = AlertMessage;
+	g_engfuncs.pfnPvAllocEntPrivateData = PvAllocEntPrivateData;
 
 	// Pass through to engine
 	g_engfuncs.pfnPrecacheEvent = gEngfuncs.pfnPrecacheEvent;

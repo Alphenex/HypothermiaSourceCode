@@ -32,6 +32,7 @@ void EV_HornetGunFire(event_args_t* args);
 void EV_TripmineFire(event_args_t* args);
 void EV_SnarkFire(event_args_t* args);
 
-
-
 void EV_TrainPitchAdjust(event_args_t* args);
+
+void EV_HLDM_MuzzleFlash(Vector pos, float amount);
+void EV_HLDM_MuzzleFlash(Vector pos, float amount, Vector color);

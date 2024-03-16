@@ -53,6 +53,28 @@ void VectorAngles(const float* forward, float* angles);
 
 extern cvar_t* cl_lw;
 
+void EV_HLDM_MuzzleFlash(Vector pos, float amount)
+{
+	dlight_t* dl = gEngfuncs.pEfxAPI->CL_AllocDlight(0);
+	dl->origin = pos;
+	dl->color.r = 255; // red
+	dl->color.g = 255; // green
+	dl->color.b = 128; // blue
+	dl->radius = amount * 100;
+	dl->die = gEngfuncs.GetClientTime() + 0.01;
+}
+
+void EV_HLDM_MuzzleFlash(Vector pos, float amount, Vector color)
+{
+	dlight_t* dl = gEngfuncs.pEfxAPI->CL_AllocDlight(0);
+	dl->origin = pos;
+	dl->color.r = color.x;	// red
+	dl->color.g = color.y;	// green
+	dl->color.b = color.z;	// blue
+	dl->radius = amount * 100;
+	dl->die = gEngfuncs.GetClientTime() + 0.01;
+}
+
 // play a strike sound based on the texture that was hit by the attack traceline.  VecSrc/VecEnd are the
 // original traceline endpoints used by the attacker, iBulletType is the type of bullet that hit the texture.
 // returns volume of strike instrument (crowbar) to play
@@ -456,7 +478,8 @@ void EV_FireGlock1(event_args_t* args)
 		EV_MuzzleFlash();
 		gEngfuncs.pEventAPI->EV_WeaponAnimation(empty ? GLOCK_SHOOT_EMPTY : GLOCK_SHOOT, 0);
 
-		V_PunchAxis(0, -2.0);
+		V_PunchAxis(0, RANDOM_FLOAT(-2.0f, -1.0f));
+		V_PunchAxis(1, RANDOM_FLOAT(-1.0f, 1.0f));
 	}
 
 	EV_GetDefaultShellInfo(args, origin, velocity, ShellVelocity, ShellOrigin, forward, right, up, 20, -12, 4);
@@ -466,6 +489,7 @@ void EV_FireGlock1(event_args_t* args)
 	gEngfuncs.pEventAPI->EV_PlaySound(idx, origin, CHAN_WEAPON, "weapons/pl_gun3.wav", gEngfuncs.pfnRandomFloat(0.92, 1.0), ATTN_NORM, 0, 98 + gEngfuncs.pfnRandomLong(0, 3));
 
 	EV_GetGunPosition(args, vecSrc, origin);
+	EV_HLDM_MuzzleFlash(vecSrc, 1.0 + gEngfuncs.pfnRandomFloat(-0.2, 0.2));
 
 	VectorCopy(forward, vecAiming);
 
@@ -502,7 +526,8 @@ void EV_FireGlock2(event_args_t* args)
 		EV_MuzzleFlash();
 		gEngfuncs.pEventAPI->EV_WeaponAnimation(empty ? GLOCK_SHOOT_EMPTY : GLOCK_SHOOT, 0);
 
-		V_PunchAxis(0, -2.0);
+		V_PunchAxis(0, RANDOM_FLOAT(-4.0f, -2.0f));  
+		V_PunchAxis(1, RANDOM_FLOAT(-1.0f, 1.0f));
 	}
 
 	EV_GetDefaultShellInfo(args, origin, velocity, ShellVelocity, ShellOrigin, forward, right, up, 20, -12, 4);
@@ -512,6 +537,7 @@ void EV_FireGlock2(event_args_t* args)
 	gEngfuncs.pEventAPI->EV_PlaySound(idx, origin, CHAN_WEAPON, "weapons/pl_gun3.wav", gEngfuncs.pfnRandomFloat(0.92, 1.0), ATTN_NORM, 0, 98 + gEngfuncs.pfnRandomLong(0, 3));
 
 	EV_GetGunPosition(args, vecSrc, origin);
+	EV_HLDM_MuzzleFlash(vecSrc, 1.0 + gEngfuncs.pfnRandomFloat(-0.2, 0.2));
 
 	VectorCopy(forward, vecAiming);
 
@@ -552,7 +578,8 @@ void EV_FireShotGunDouble(event_args_t* args)
 		// Add muzzle flash to current weapon model
 		EV_MuzzleFlash();
 		gEngfuncs.pEventAPI->EV_WeaponAnimation(SHOTGUN_FIRE2, 0);
-		V_PunchAxis(0, -10.0);
+		V_PunchAxis(0, RANDOM_FLOAT(-12.5, -10.0f));
+		V_PunchAxis(1, RANDOM_FLOAT(-4.0, 4.0f));
 	}
 
 	for (j = 0; j < 2; j++)
@@ -565,6 +592,7 @@ void EV_FireShotGunDouble(event_args_t* args)
 	gEngfuncs.pEventAPI->EV_PlaySound(idx, origin, CHAN_WEAPON, "weapons/dbarrel1.wav", gEngfuncs.pfnRandomFloat(0.98, 1.0), ATTN_NORM, 0, 85 + gEngfuncs.pfnRandomLong(0, 0x1f));
 
 	EV_GetGunPosition(args, vecSrc, origin);
+	EV_HLDM_MuzzleFlash(vecSrc, 1.0 + gEngfuncs.pfnRandomFloat(-0.5, 0.5));
 	VectorCopy(forward, vecAiming);
 
 	if (gEngfuncs.GetMaxClients() > 1)
@@ -605,7 +633,8 @@ void EV_FireShotGunSingle(event_args_t* args)
 		EV_MuzzleFlash();
 		gEngfuncs.pEventAPI->EV_WeaponAnimation(SHOTGUN_FIRE, 0);
 
-		V_PunchAxis(0, -5.0);
+		V_PunchAxis(0, RANDOM_FLOAT(-7.5f, -5.0f));
+		V_PunchAxis(1, RANDOM_FLOAT(-2.0, 2.0f));
 	}
 
 	EV_GetDefaultShellInfo(args, origin, velocity, ShellVelocity, ShellOrigin, forward, right, up, 32, -12, 6);
@@ -615,6 +644,7 @@ void EV_FireShotGunSingle(event_args_t* args)
 	gEngfuncs.pEventAPI->EV_PlaySound(idx, origin, CHAN_WEAPON, "weapons/sbarrel1.wav", gEngfuncs.pfnRandomFloat(0.95, 1.0), ATTN_NORM, 0, 93 + gEngfuncs.pfnRandomLong(0, 0x1f));
 
 	EV_GetGunPosition(args, vecSrc, origin);
+	EV_HLDM_MuzzleFlash(vecSrc, 1.0 + gEngfuncs.pfnRandomFloat(-0.3, 0.3));
 	VectorCopy(forward, vecAiming);
 
 	if (gEngfuncs.GetMaxClients() > 1)
@@ -661,7 +691,8 @@ void EV_FireMP5(event_args_t* args)
 		EV_MuzzleFlash();
 		gEngfuncs.pEventAPI->EV_WeaponAnimation(MP5_FIRE1 + gEngfuncs.pfnRandomLong(0, 2), 0);
 
-		V_PunchAxis(0, gEngfuncs.pfnRandomFloat(-2, 2));
+		V_PunchAxis(0, gEngfuncs.pfnRandomFloat(-1.5f, 1.5f));
+		V_PunchAxis(1, gEngfuncs.pfnRandomFloat(-0.5f, 0.5f));
 	}
 
 	EV_GetDefaultShellInfo(args, origin, velocity, ShellVelocity, ShellOrigin, forward, right, up, 20, -12, 4);
@@ -679,6 +710,7 @@ void EV_FireMP5(event_args_t* args)
 	}
 
 	EV_GetGunPosition(args, vecSrc, origin);
+	EV_HLDM_MuzzleFlash(vecSrc, 1.0 + gEngfuncs.pfnRandomFloat(-0.25f, 0.25f));
 	VectorCopy(forward, vecAiming);
 
 	EV_HLDM_FireBullets(idx, forward, right, up, 1, vecSrc, vecAiming, 8192, BULLET_PLAYER_MP5, 2, &tracerCount[idx - 1], args->fparam1, args->fparam2);
@@ -744,7 +776,8 @@ void EV_FirePython(event_args_t* args)
 		EV_MuzzleFlash();
 		gEngfuncs.pEventAPI->EV_WeaponAnimation(PYTHON_FIRE1, multiplayer ? 1 : 0);
 
-		V_PunchAxis(0, -10.0);
+		V_PunchAxis(0, RANDOM_FLOAT(-10.0f, -7.5f));
+		V_PunchAxis(1, RANDOM_FLOAT(-2.0f, -2.0f));
 	}
 
 	switch (gEngfuncs.pfnRandomLong(0, 1))
@@ -758,6 +791,7 @@ void EV_FirePython(event_args_t* args)
 	}
 
 	EV_GetGunPosition(args, vecSrc, origin);
+	EV_HLDM_MuzzleFlash(vecSrc, 1.0 + gEngfuncs.pfnRandomFloat(-0.25f, 0.25f));
 
 	VectorCopy(forward, vecAiming);
 
@@ -1341,6 +1375,7 @@ void EV_EgonFire(event_args_t* args)
 			AngleVectors(angles, forward, right, up);
 
 			EV_GetGunPosition(args, vecSrc, pl->origin);
+			EV_HLDM_MuzzleFlash(vecSrc, RANDOM_FLOAT(-10.0f, 10.0f), Vector(255, 70, 20));
 
 			VectorMA(vecSrc, 2048, forward, vecEnd);
 
@@ -1356,27 +1391,6 @@ void EV_EgonFire(event_args_t* args)
 			gEngfuncs.pEventAPI->EV_PlayerTrace(vecSrc, vecEnd, PM_STUDIO_BOX, -1, &tr);
 
 			gEngfuncs.pEventAPI->EV_PopPMStates();
-
-			int iBeamModelIndex = gEngfuncs.pEventAPI->EV_FindModelIndex(EGON_BEAM_SPRITE);
-
-			float r = 50.0f;
-			float g = 50.0f;
-			float b = 125.0f;
-
-			//if ( IEngineStudio.IsHardware() )
-			{
-				r /= 255.0f;
-				g /= 255.0f;
-				b /= 255.0f;
-			}
-
-
-			pBeam = gEngfuncs.pEfxAPI->R_BeamEntPoint(idx | 0x1000, tr.endpos, iBeamModelIndex, 99999, 3.5, 0.2, 0.7, 55, 0, 0, r, g, b);
-
-			if (pBeam)
-				pBeam->flags |= (FBEAM_SINENOISE);
-
-			pBeam2 = gEngfuncs.pEfxAPI->R_BeamEntPoint(idx | 0x1000, tr.endpos, iBeamModelIndex, 99999, 5.0, 0.08, 0.7, 25, 0, 0, r, g, b);
 
 			// Vit_amiN: egon beam flare
 			pFlare = gEngfuncs.pEfxAPI->R_TempSprite(tr.endpos, vec3_origin, 1.0,

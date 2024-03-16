@@ -381,11 +381,11 @@ public:
 	bool Init() override;
 	bool VidInit() override;
 	bool Draw(float flTime) override;
+	void Reset() override;
 	bool MsgFunc_Stamina(const char* pszName, int iSize, void* pbuf);
 
-private:
-	Rect* m_Rect;
-	int m_iWidth;
+	float m_flStamina;
+	float m_flStaminaAlpha;
 };
 
 //
@@ -592,6 +592,7 @@ public:
 	CHudAmmoSecondary m_AmmoSecondary;
 	CHudTextMessage m_TextMessage;
 	CHudStatusIcons m_StatusIcons;
+	CHudStamina m_Stamina;
 
 	void Init();
 	void VidInit();

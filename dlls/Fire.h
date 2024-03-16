@@ -22,7 +22,9 @@ public:
 	bool Save(CSave& save) override;
 	bool Restore(CRestore& restore) override;
 
-	static CFire* CreateFire(Vector vPos, float flLifetime, float flDamage = 5.0f);
+	static CFire* CreateFire();
+
+	static CFire* SpawnFireAtPosition(Vector vPos, float flLifetime, float flDamage = 5.0f);
 	static CFire* BurnEntity(CBaseEntity* pEnt, CBaseEntity* pAttacker = nullptr, float flLifetime = -1.0f, float flDamage = 5.0f);
 	static CFire* BurnEntityUntilDead(CBaseEntity* pEnt, CBaseEntity* pAttacker = nullptr, float flDamage = 5.0f);
 
@@ -35,7 +37,8 @@ private:
 private:
 	static TYPEDESCRIPTION m_SaveData[];
 
-	CSprite* m_pSprite;
+	CSprite* m_pFireSprite;
+	short m_iSmokeSpriteID;
 	float m_flLifeTime;
 	bool m_bActive;
 
@@ -44,5 +47,6 @@ private:
 	CBaseEntity* m_pOwner;
 	bool m_bSpawnedIn;
 
+	float m_fSmokeCreateTimer;
 	float m_fFireSoundTimer;
 };

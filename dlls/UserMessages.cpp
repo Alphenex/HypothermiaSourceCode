@@ -67,4 +67,6 @@ void LinkUserMessages()
 	gmsgWeapons = REG_USER_MSG("Weapons", 8);
 
 	gmsgFog = REG_USER_MSG("Fog", 9);
+
+	gmsgStamina = REG_USER_MSG("Stamina", 2); // 1 Short
 }

@@ -117,8 +117,8 @@ TYPEDESCRIPTION CBasePlayer::m_playerSaveData[] =
 		//DEFINE_FIELD(CBasePlayer, m_flSndRange, FIELD_FLOAT),
 
 		DEFINE_FIELD(CBasePlayer, m_flStartCharge, FIELD_TIME),
-		DEFINE_FIELD(CBasePlayer, m_bMovementCrippled, FIELD_BOOLEAN),
-		DEFINE_FIELD(CBasePlayer, m_flStamina, FIELD_FLOAT)
+		DEFINE_FIELD(CBasePlayer, m_flStamina, FIELD_FLOAT),
+		DEFINE_FIELD(CBasePlayer, m_flWeaponDropTimer, FIELD_FLOAT)
 
 		//DEFINE_FIELD( CBasePlayer, m_fDeadTime, FIELD_FLOAT ), // only used in multiplayer games
 		//DEFINE_FIELD( CBasePlayer, m_fGameHUDInitialized, FIELD_INTEGER ), // only used in multiplayer games
@@ -328,21 +328,16 @@ void CBasePlayer::TraceAttack(entvars_t* pevAttacker, float flDamage, Vector vec
 		case HITGROUP_RIGHTARM:
 			flDamage *= gSkillData.plrArm;
 			
-			if (IsBulletDMG && DropWeaponRNG < 20) // Half the time
+			if (IsBulletDMG && DropWeaponRNG < 20 && gpGlobals->time > m_flWeaponDropTimer) // Half the time
 			{
 				DropPlayerItem(""); // We maybe don't need to give input as no input equals current weapon
+				m_flWeaponDropTimer = gpGlobals->time + 5.0f;
 			}
 
 			break;
 		case HITGROUP_LEFTLEG:
 		case HITGROUP_RIGHTLEG:
 			flDamage *= gSkillData.plrLeg;
-
-			if (IsBulletDMG && CrippleRNG < 50)
-			{
-				m_bMovementCrippled = true;
-				pev->maxspeed = 170;
-			}
 
 			break;
 		default:
@@ -825,6 +820,11 @@ void CBasePlayer::Killed(entvars_t* pevAttacker, int iGib)
 	m_iClientHealth = 0;
 	MESSAGE_BEGIN(MSG_ONE, gmsgHealth, NULL, pev);
 	WRITE_SHORT(m_iClientHealth);
+	MESSAGE_END();
+
+	m_iClientStamina = 0;
+	MESSAGE_BEGIN(MSG_ONE, gmsgStamina, NULL, pev);
+	WRITE_SHORT(m_iClientStamina);
 	MESSAGE_END();
 
 	// Tell Ammo Hud that the player is dead
@@ -1795,26 +1795,28 @@ void CBasePlayer::PreThink()
 	int run = (pev->button & IN_SCORE) != 0;
 	int runNSuitNStamina = run * (int)HasSuit() * (m_flStamina >= 1.0) ? 1 : 0;
 	if (pev->button & IN_FORWARD)
-	{
 		pev->maxspeed = 175 + 175 * runNSuitNStamina;
-	} 
-	else {
+	else 
 		pev->maxspeed = 125 + 60 * runNSuitNStamina;
-	}
 
 	if (HasSuit())
 	{
-		int moving = pev->button; moving &= (IN_FORWARD + IN_BACK + IN_MOVELEFT + IN_MOVERIGHT);
-		if (!run) // if we aint running then slowly fill our stamina
+		bool moving = (pev->button & (IN_FORWARD | IN_BACK | IN_MOVELEFT | IN_MOVERIGHT)) != 0;
+		if ((!run || !moving) && gpGlobals->time > m_flStaminaTimer) // if we aint running then slowly fill our stamina
 			m_flStamina += 5.0f * gpGlobals->frametime;
-		else if (run && moving != 0)
+		else if (run && moving)
+		{
 			m_flStamina -= 10.0f * gpGlobals->frametime;
+		}
 	}
 
 	if (m_flStamina > 100) // Clamp Stamina please.
 		m_flStamina = 100;
 	else if (m_flStamina < 0)
+	{
 		m_flStamina = 0;
+		m_flStaminaTimer = gpGlobals->time + 3.0f;
+	}
 
 	UTIL_MakeVectors(pev->v_angle); // is this still used?
 
@@ -4081,6 +4083,19 @@ void CBasePlayer::UpdateClientData()
 		MESSAGE_END();
 
 		m_iClientHealth = pev->health;
+	}
+
+	int rServerStamina = roundf(m_flStamina);
+	int rClientStamina = m_iClientStamina;
+	if (rServerStamina != rClientStamina)
+	{
+		rServerStamina = std::clamp<float>(rServerStamina, 0.0f, 100.0f);
+
+		MESSAGE_BEGIN(MSG_ONE, gmsgStamina, NULL, pev);
+		WRITE_SHORT(rServerStamina);
+		MESSAGE_END();
+
+		m_iClientStamina = rServerStamina;
 	}
 
 
