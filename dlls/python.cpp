@@ -21,6 +21,7 @@
 #include "player.h"
 #include "gamerules.h"
 #include "UserMessages.h"
+#include <algorithm>
 
 LINK_ENTITY_TO_CLASS(weapon_python, CPython);
 LINK_WEAPON_TO_CLASS(weapon_357, CPython);
@@ -166,8 +167,13 @@ void CPython::PrimaryAttack()
 	Vector vecSrc = m_pPlayer->GetGunPosition();
 	Vector vecAiming = m_pPlayer->GetAutoaimVector(AUTOAIM_10DEGREES);
 
+	pev->fov += 5.0f * gpGlobals->frametime;
+	pev->fov = std::clamp<float>(pev->fov, 0.0f, 0.5f);
+	ALERT(at_console, "%f\n", pev->fov);
+
 	Vector vecDir;
-	vecDir = m_pPlayer->FireBulletsPlayer(1, vecSrc, vecAiming, VECTOR_CONE_1DEGREES, 8192, BULLET_PLAYER_357, 0, 0, m_pPlayer->pev, m_pPlayer->random_seed);
+	Vector fovvec = Vector(pev->fov, pev->fov, pev->fov);
+	vecDir = m_pPlayer->FireBulletsPlayer(1, vecSrc, vecAiming, VECTOR_CONE_1DEGREES + fovvec, 8192, BULLET_PLAYER_357, 0, 0, m_pPlayer->pev, m_pPlayer->random_seed);
 
 	int flags;
 #if defined(CLIENT_WEAPONS)
@@ -213,6 +219,8 @@ void CPython::WeaponIdle()
 	ResetEmptySound();
 
 	m_pPlayer->GetAutoaimVector(AUTOAIM_10DEGREES);
+
+	pev->fov -= 0.1f * gpGlobals->frametime;
 
 	if (m_flTimeWeaponIdle > UTIL_WeaponTimeBase())
 		return;

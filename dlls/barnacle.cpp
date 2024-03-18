@@ -75,7 +75,7 @@ IMPLEMENT_SAVERESTORE(CBarnacle, CBaseMonster);
 //=========================================================
 int CBarnacle::Classify()
 {
-	return CLASS_ALIEN_MONSTER;
+	return CLASS_BARNACLE;
 }
 
 //=========================================================

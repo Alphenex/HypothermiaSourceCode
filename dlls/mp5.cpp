@@ -22,6 +22,7 @@
 #include "soundent.h"
 #include "gamerules.h"
 #include "UserMessages.h"
+#include <algorithm>
 
 LINK_ENTITY_TO_CLASS(weapon_mp5, CMP5);
 LINK_WEAPON_TO_CLASS(weapon_9mmAR, CMP5);
@@ -111,6 +112,9 @@ void CMP5::PrimaryAttack()
 		return;
 	}
 
+	pev->fov += gpGlobals->frametime;
+	pev->fov = std::clamp<float>(pev->fov, 0.0f, 0.1f);
+
 	m_pPlayer->m_iWeaponVolume = NORMAL_GUN_VOLUME;
 	m_pPlayer->m_iWeaponFlash = NORMAL_GUN_FLASH;
 
@@ -138,7 +142,8 @@ void CMP5::PrimaryAttack()
 	else
 	{
 		// single player spread
-		vecDir = m_pPlayer->FireBulletsPlayer(1, vecSrc, vecAiming, VECTOR_CONE_3DEGREES, 8192, BULLET_PLAYER_MP5, 2, 0, m_pPlayer->pev, m_pPlayer->random_seed);
+		Vector fovvec = Vector(pev->fov, pev->fov, pev->fov);
+		vecDir = m_pPlayer->FireBulletsPlayer(1, vecSrc, vecAiming, VECTOR_CONE_3DEGREES + fovvec, 8192, BULLET_PLAYER_MP5, 2, 0, m_pPlayer->pev, m_pPlayer->random_seed);
 	}
 
 	int flags;
@@ -224,10 +229,11 @@ void CMP5::Reload()
 	DefaultReload(MP5_MAX_CLIP, MP5_RELOAD, 1.5);
 }
 
-
 void CMP5::WeaponIdle()
 {
 	ResetEmptySound();
+
+	pev->fov -= 0.5f * gpGlobals->frametime;
 
 	m_pPlayer->GetAutoaimVector(AUTOAIM_5DEGREES);
 

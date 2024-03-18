@@ -38,6 +38,7 @@ private:
 	static TYPEDESCRIPTION m_SaveData[];
 
 	CSprite* m_pFireSprite;
+	CSprite* m_pFireGlowSprite;
 	short m_iSmokeSpriteID;
 	float m_flLifeTime;
 	bool m_bActive;

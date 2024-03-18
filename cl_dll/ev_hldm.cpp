@@ -1298,7 +1298,8 @@ void EV_FireRpg(event_args_t* args)
 	{
 		gEngfuncs.pEventAPI->EV_WeaponAnimation(RPG_FIRE2, 0);
 
-		V_PunchAxis(0, -5.0);
+		V_PunchAxis(0, -15.0f);
+		V_PunchAxis(1, -3.3f);
 	}
 }
 //======================
@@ -1311,8 +1312,6 @@ void EV_FireRpg(event_args_t* args)
 int g_fireAnims1[] = {EGON_FIRE1, EGON_FIRE2, EGON_FIRE3, EGON_FIRE4};
 int g_fireAnims2[] = {EGON_ALTFIRECYCLE};
 
-BEAM* pBeam;
-BEAM* pBeam2;
 TEMPENTITY* pFlare; // Vit_amiN: egon's beam flare
 
 void EV_EgonFlareCallback(struct tempent_s* ent, float frametime, float currenttime)
@@ -1361,7 +1360,7 @@ void EV_EgonFire(event_args_t* args)
 	if (EV_IsLocal(idx))
 		gEngfuncs.pEventAPI->EV_WeaponAnimation(g_fireAnims1[gEngfuncs.pfnRandomLong(0, 3)], 0);
 
-	if (iStartup && EV_IsLocal(idx) && !pBeam && !pBeam2 && !pFlare && 0 != cl_lw->value) //Adrian: Added the cl_lw check for those lital people that hate weapon prediction.
+	if (iStartup && EV_IsLocal(idx) && !pFlare && 0 != cl_lw->value) //Adrian: Added the cl_lw check for those lital people that hate weapon prediction.
 	{
 		Vector vecSrc, vecEnd, angles, forward, right, up;
 		pmtrace_t tr;
@@ -1423,19 +1422,6 @@ void EV_EgonStop(event_args_t* args)
 
 	if (EV_IsLocal(idx))
 	{
-		if (pBeam)
-		{
-			pBeam->die = 0.0;
-			pBeam = NULL;
-		}
-
-
-		if (pBeam2)
-		{
-			pBeam2->die = 0.0;
-			pBeam2 = NULL;
-		}
-
 		if (pFlare) // Vit_amiN: egon beam flare
 		{
 			pFlare->die = gEngfuncs.GetClientTime();

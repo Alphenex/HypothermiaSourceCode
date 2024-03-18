@@ -73,6 +73,9 @@ bool CHudBattery::MsgFunc_Battery(const char* pszName, int iSize, void* pbuf)
 
 bool CHudBattery::Draw(float flTime)
 {
+	if (!gHUD.HasSuit())
+		return true;
+
 	if ((gHUD.m_iHideHUDDisplay & HIDEHUD_HEALTH) != 0)
 		return true;
 

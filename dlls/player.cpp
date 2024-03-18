@@ -2830,10 +2830,10 @@ void CBasePlayer::Spawn()
 {
 	m_bIsSpawning = true;
 
-	//Make sure this gets reset even if somebody adds an early return or throws an exception.
+	// Make sure this gets reset even if somebody adds an early return or throws an exception.
 	const CallOnDestroy resetIsSpawning{[this]()
 		{
-			//Done spawning; reset.
+			// Done spawning; reset.
 			m_bIsSpawning = false;
 		}};
 
@@ -2930,6 +2930,13 @@ void CBasePlayer::Spawn()
 	m_flNextChatTime = gpGlobals->time;
 
 	g_pGameRules->PlayerSpawn(this);
+
+#if _DEBUG
+	if (FStrEq(STRING(gpGlobals->mapname), "testmap")) 
+	{
+		CheatImpulseCommands(101);
+	}
+#endif
 }
 
 

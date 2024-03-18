@@ -96,6 +96,9 @@ bool CHudFlashlight::MsgFunc_Flashlight(const char* pszName, int iSize, void* pb
 
 bool CHudFlashlight::Draw(float flTime)
 {
+	if (!gHUD.HasSuit())
+		return true;
+
 	if ((gHUD.m_iHideHUDDisplay & (HIDEHUD_FLASHLIGHT | HIDEHUD_ALL)) != 0)
 		return true;
 

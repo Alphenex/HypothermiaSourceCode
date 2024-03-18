@@ -5,6 +5,7 @@ LINK_ENTITY_TO_CLASS(env_fire, CFire)
 TYPEDESCRIPTION CFire::m_SaveData[] =
 {
 		DEFINE_FIELD(CFire, m_pFireSprite, FIELD_CLASSPTR),
+		DEFINE_FIELD(CFire, m_pFireGlowSprite, FIELD_CLASSPTR),
 		DEFINE_FIELD(CFire, m_flLifeTime, FIELD_FLOAT),
 		DEFINE_FIELD(CFire, m_bActive, FIELD_BOOLEAN),
 
@@ -31,6 +32,7 @@ bool CFire::KeyValue(KeyValueData* pkvd)
 }
 
 #define FIRE_SPRITE "sprites/prioryflame.spr"
+#define FIREGLOW_SPRITE "sprites/hotglow.spr"
 #define SMOKE_SPRITE "sprites/smokepuff.spr"
 #define FIRE_LOOPSOUND "ambience/burning1.wav"
 #define FIRE_LOOPSOUNDLENGTH 5
@@ -38,6 +40,7 @@ bool CFire::KeyValue(KeyValueData* pkvd)
 void CFire::Precache()
 {
 	PRECACHE_MODEL(FIRE_SPRITE);
+	PRECACHE_MODEL(FIREGLOW_SPRITE);
 	m_iSmokeSpriteID = PRECACHE_MODEL(SMOKE_SPRITE);
 	PRECACHE_SOUND(FIRE_LOOPSOUND);
 }
@@ -92,7 +95,7 @@ void CFire::Think()
 	{
 		if (animattached && m_pAttachedEdict && m_pAttachedEdict->pvPrivateData != nullptr)
 		{
-			Vector attpelvispos;
+			Vector attpelvispos = Vector(0, 0, 0);
 			Vector attanglepos;
 
 			// Nasty code, this shouldn't be done every Think BUT what we essentially do here is:
@@ -105,12 +108,15 @@ void CFire::Think()
 			HurtEntity(this, animattached);
 		}
 
+		Vector norg = pev->origin + Vector(0, 0, (pev->mins.z + pev->maxs.z - 4 * !m_bSpawnedIn) * 0.5);
 		if (m_pFireSprite)
 		{
-			Vector norg = pev->origin + Vector(0, 0, (pev->mins.z + pev->maxs.z - 4 * !m_bSpawnedIn) * 0.5);
 			m_pFireSprite->pev->origin = norg;
 			m_pFireSprite->AnimateThink();
 		}
+
+		if (m_pFireGlowSprite)
+			m_pFireGlowSprite->pev->origin = norg;
 
 		if (gpGlobals->time > m_fSmokeCreateTimer)
 		{
@@ -125,7 +131,7 @@ void CFire::Think()
 			WRITE_COORD(125.0f);		   // fly up to
 			WRITE_SHORT(m_iSmokeSpriteID); // sprite id
 			WRITE_BYTE(2);				   // amount
-			WRITE_COORD(0.5f);			   // speed
+			WRITE_COORD(0.25f);			   // speed
 			MESSAGE_END();
 			m_fSmokeCreateTimer = gpGlobals->time + 0.05f + RANDOM_FLOAT(0.0f, 0.33f); // Every 0.05f + random secs create smoke.
 		}
@@ -145,15 +151,15 @@ void CFire::Think()
 			WRITE_COORD(pev->origin.z);
 			WRITE_BYTE(12);	 // radius
 			WRITE_BYTE(255); // R
-			WRITE_BYTE(80);	 // G
-			WRITE_BYTE(32);	 // B
+			WRITE_BYTE(150); // G
+			WRITE_BYTE(40);	 // B
 			WRITE_BYTE(2);	 // life * 10
 			WRITE_BYTE(0);	 // decay
 			MESSAGE_END();
 		}
 	}
 
-	pev->nextthink = gpGlobals->time + 0.05f;
+	pev->nextthink = gpGlobals->time + 0.020f;
 }
 
 void CFire::StartFire()
@@ -171,6 +177,7 @@ void CFire::KillFire()
 {
 	STOP_SOUND(edict(), CHAN_VOICE, FIRE_LOOPSOUND);
 	UTIL_Remove(m_pFireSprite);
+	UTIL_Remove(m_pFireGlowSprite);
 	UTIL_Remove(this);
 }
 
@@ -262,9 +269,10 @@ CFire* CFire::BurnEntityUntilDead(CBaseEntity* pEnt, CBaseEntity* pAttacker, flo
 	return fire;
 }
 
-constexpr float dps = 0.5f;
+constexpr float dps = 0.5f; // Damage Per Second Timer.
 void CFire::HurtEntity(CFire* self, CBaseEntity* pEnt)
 {
+	if (self->pev->dmg <= 0.0f) return;
 	if (pEnt->pev->takedamage == 0) return;
 	if (self->pev->dmgtime > gpGlobals->time && gpGlobals->time != self->pev->pain_finished) return;
 
@@ -280,7 +288,11 @@ void CFire::HurtEntity(CFire* self, CBaseEntity* pEnt)
 void CFire::CreateSprite()
 {
 	m_pFireSprite = CSprite::SpriteCreate(FIRE_SPRITE, pev->origin + Vector(0, 0, (pev->mins.z + pev->maxs.z - 4) * 0.5), true);
-	m_pFireSprite->SetTransparency(kRenderTransAdd, 255, 255, 255, 200, kRenderFxNone);
+	m_pFireSprite->SetTransparency(kRenderTransAdd, 255, 255, 255, 220, kRenderFxNone);
 	m_pFireSprite->SetScale(pev->scale);
 	m_pFireSprite->pev->framerate = 10.0f;
+
+	m_pFireGlowSprite = CSprite::SpriteCreate(FIREGLOW_SPRITE, pev->origin + Vector(0, 0, (pev->mins.z + pev->maxs.z - 4) * 0.5), true);
+	m_pFireGlowSprite->SetTransparency(kRenderGlow, 255, 255, 255, 175, kRenderFxNoDissipation);
+	m_pFireGlowSprite->SetScale(pev->scale);
 }

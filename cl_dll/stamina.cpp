@@ -48,7 +48,7 @@ static float lerp(float a, float b, float f)
 	return a + f * (b - a);
 }
 
-static int sign = -1;
+static float sign = -1;
 
 bool CHudStamina::Draw(float flTime)
 {
@@ -57,13 +57,12 @@ bool CHudStamina::Draw(float flTime)
 	bool pressingshift = (gHUD.m_iKeyBits & (IN_SCORE)) != 0;
 	bool moving = (gHUD.m_iKeyBits & (IN_FORWARD | IN_BACK | IN_MOVELEFT | IN_MOVERIGHT)) != 0;
 
-	a = std::clamp<float>(((float)(100 - m_flStamina) / 100) * 255, MIN_ALPHA / 2, MIN_ALPHA);
-
 	m_flStaminaAlpha += 200.0f * sign * gHUD.m_flTimeDelta;
 	m_flStaminaAlpha = std::clamp<float>(m_flStaminaAlpha, 0, MIN_ALPHA);
 
-	if (!pressingshift || !moving) sign = -1;
-	else sign = 1;
+	if (m_flStamina < 50.0f) sign = 5.0f;
+	else if (!pressingshift || !moving) sign = -0.1f;
+	else sign = 2.0f;
 
 	if ((gHUD.m_iHideHUDDisplay & HIDEHUD_ALL) != 0)
 		return true;
