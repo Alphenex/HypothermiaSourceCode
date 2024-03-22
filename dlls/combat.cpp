@@ -29,6 +29,7 @@
 #include "animation.h"
 #include "weapons.h"
 #include "func_break.h"
+#include "Fire.h"
 
 extern Vector VecBModelOrigin(entvars_t* pevBModel);
 
@@ -1127,6 +1128,155 @@ void CBaseMonster::RadiusDamage(Vector vecSrc, entvars_t* pevInflictor, entvars_
 	::RadiusDamage(vecSrc, pevInflictor, pevAttacker, flDamage, flDamage * 2.5, iClassIgnore, bitsDamageType);
 }
 
+void RadiusBurn(Vector vecSrc, entvars_t* pevAttacker, float flDamage, float flRadius, int iClassIgnore, float flLifetime)
+{
+	CBaseEntity* pEntity = NULL;
+	TraceResult tr;
+	float flAdjustedDamage, falloff;
+	Vector vecSpot;
+
+	const bool bInWater = (UTIL_PointContents(vecSrc) == CONTENTS_WATER);
+
+	vecSrc.z += 1; // in case grenade is lying on the ground
+
+	// iterate on all entities in the vicinity.
+	while ((pEntity = UTIL_FindEntityInSphere(pEntity, vecSrc, flRadius)) != NULL)
+	{
+		if (pEntity->pev->takedamage != DAMAGE_NO)
+		{
+			// UNDONE: this should check a damage mask, not an ignore
+			if (iClassIgnore != CLASS_NONE && pEntity->Classify() == iClassIgnore)
+			{ // houndeyes don't hurt other houndeyes with their attack
+				continue;
+			}
+
+			// blast's don't tavel into or out of water
+			if (bInWater && pEntity->pev->waterlevel == 0)
+				continue;
+			if (!bInWater && pEntity->pev->waterlevel == 3)
+				continue;
+
+			vecSpot = pEntity->BodyTarget(vecSrc);
+
+			UTIL_TraceLine(vecSrc, vecSpot, dont_ignore_monsters, nullptr, &tr);
+
+			if (tr.flFraction == 1.0 || tr.pHit == pEntity->edict())
+			{ // the explosion can 'see' this entity, so hurt them!
+				if (0 != tr.fStartSolid)
+				{
+					// if we're stuck inside them, fixup the position and distance
+					tr.vecEndPos = vecSrc;
+					tr.flFraction = 0.0;
+				}
+
+				if (!pevAttacker)
+					CFire* fire = CFire::BurnEntity(pEntity, nullptr, flDamage, flLifetime);
+				else
+					CFire* fire = CFire::BurnEntity(pEntity, GetClassPtr<CBaseEntity>((CBaseEntity*)pevAttacker), flDamage, flLifetime);
+			}
+		}
+	}
+}
+
+void RadiusBurnUntilDead(Vector vecSrc, entvars_t* pevAttacker, float flDamage, float flRadius, int iClassIgnore)
+{
+	CBaseEntity* pEntity = NULL;
+	TraceResult tr;
+	float flAdjustedDamage, falloff;
+	Vector vecSpot;
+
+	const bool bInWater = (UTIL_PointContents(vecSrc) == CONTENTS_WATER);
+
+	vecSrc.z += 1; // in case grenade is lying on the ground
+
+	// iterate on all entities in the vicinity.
+	while ((pEntity = UTIL_FindEntityInSphere(pEntity, vecSrc, flRadius)) != NULL)
+	{
+		if (pEntity->pev->takedamage != DAMAGE_NO)
+		{
+			// UNDONE: this should check a damage mask, not an ignore
+			if (iClassIgnore != CLASS_NONE && pEntity->Classify() == iClassIgnore)
+			{ // houndeyes don't hurt other houndeyes with their attack
+				continue;
+			}
+
+			// blast's don't tavel into or out of water
+			if (bInWater && pEntity->pev->waterlevel == 0)
+				continue;
+			if (!bInWater && pEntity->pev->waterlevel == 3)
+				continue;
+
+			vecSpot = pEntity->BodyTarget(vecSrc);
+
+			UTIL_TraceLine(vecSrc, vecSpot, dont_ignore_monsters, nullptr, &tr);
+
+			if (tr.flFraction == 1.0 || tr.pHit == pEntity->edict())
+			{ // the explosion can 'see' this entity, so hurt them!
+				if (0 != tr.fStartSolid)
+				{
+					// if we're stuck inside them, fixup the position and distance
+					tr.vecEndPos = vecSrc;
+					tr.flFraction = 0.0;
+				}
+
+				if (!pevAttacker)
+					CFire* fire = CFire::BurnEntityUntilDead(pEntity, nullptr, flDamage);
+				else
+					CFire* fire = CFire::BurnEntityUntilDead(pEntity, GetClassPtr<CBaseEntity>((CBaseEntity*)pevAttacker), flDamage);
+			}
+		}
+	}
+}
+
+void RadiusBurnUntilDead(Vector vecSrc, entvars_t* pevAttacker, float flDamage, float flRadius, int iClassIgnore, float flLifetime)
+{
+	CBaseEntity* pEntity = NULL;
+	TraceResult tr;
+	float flAdjustedDamage, falloff;
+	Vector vecSpot;
+
+	const bool bInWater = (UTIL_PointContents(vecSrc) == CONTENTS_WATER);
+
+	vecSrc.z += 1; // in case grenade is lying on the ground
+
+	// iterate on all entities in the vicinity.
+	while ((pEntity = UTIL_FindEntityInSphere(pEntity, vecSrc, flRadius)) != NULL)
+	{
+		if (pEntity->pev->takedamage != DAMAGE_NO)
+		{
+			// UNDONE: this should check a damage mask, not an ignore
+			if (iClassIgnore != CLASS_NONE && pEntity->Classify() == iClassIgnore)
+			{ // houndeyes don't hurt other houndeyes with their attack
+				continue;
+			}
+
+			// blast's don't tavel into or out of water
+			if (bInWater && pEntity->pev->waterlevel == 0)
+				continue;
+			if (!bInWater && pEntity->pev->waterlevel == 3)
+				continue;
+
+			vecSpot = pEntity->BodyTarget(vecSrc);
+
+			UTIL_TraceLine(vecSrc, vecSpot, dont_ignore_monsters, nullptr, &tr);
+
+			if (tr.flFraction == 1.0 || tr.pHit == pEntity->edict())
+			{ // the explosion can 'see' this entity, so hurt them!
+				if (0 != tr.fStartSolid)
+				{
+					// if we're stuck inside them, fixup the position and distance
+					tr.vecEndPos = vecSrc;
+					tr.flFraction = 0.0;
+				}
+
+				if (!pevAttacker)
+					CFire* fire = CFire::BurnEntityUntilDeadWithLifetime(pEntity, nullptr, flDamage, flLifetime);
+				else
+					CFire* fire = CFire::BurnEntityUntilDeadWithLifetime(pEntity, GetClassPtr<CBaseEntity>((CBaseEntity*)pevAttacker), flDamage, flLifetime);
+			}
+		}
+	}
+}
 
 //=========================================================
 // CheckTraceHullAttack - expects a length to trace, amount

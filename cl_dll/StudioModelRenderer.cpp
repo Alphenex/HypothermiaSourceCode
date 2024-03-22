@@ -1461,10 +1461,8 @@ bool CStudioModelRenderer::StudioDrawPlayer(int flags, entity_state_t* pplayer)
 		m_pCurrentEntity->latched.prevcontroller[1] = m_pCurrentEntity->curstate.controller[1];
 		m_pCurrentEntity->latched.prevcontroller[2] = m_pCurrentEntity->curstate.controller[2];
 		m_pCurrentEntity->latched.prevcontroller[3] = m_pCurrentEntity->curstate.controller[3];
-
 		m_pPlayerInfo = IEngineStudio.PlayerInfo(m_nPlayerIndex);
 		m_pPlayerInfo->gaitsequence = 0;
-
 		StudioSetUpTransform(false);
 	}
 

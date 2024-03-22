@@ -5,6 +5,13 @@
 #include "cbase.h"
 #include "effects.h"
 
+enum BurnFlag
+{
+	FBURN_LIFETIME = (1 << 0),
+	FBURN_UNTILDEAD = (1 << 1),
+	FBURN_UNTILDEADWLIFETIME = (1 << 2), // Basically burns until the attached is dead and continues after lifetime
+};
+
 class CFire : public CBaseEntity
 {
 public:
@@ -25,8 +32,9 @@ public:
 	static CFire* CreateFire();
 
 	static CFire* SpawnFireAtPosition(Vector vPos, float flLifetime, float flDamage = 5.0f);
-	static CFire* BurnEntity(CBaseEntity* pEnt, CBaseEntity* pAttacker = nullptr, float flLifetime = -1.0f, float flDamage = 5.0f);
-	static CFire* BurnEntityUntilDead(CBaseEntity* pEnt, CBaseEntity* pAttacker = nullptr, float flDamage = 5.0f);
+	static CFire* BurnEntity(CBaseEntity* pEnt, CBaseEntity* pAttacker = nullptr, float flDamage = 5.0f, float flLifetime = -1.0f, bool charattached = true);
+	static CFire* BurnEntityUntilDead(CBaseEntity* pEnt, CBaseEntity* pAttacker = nullptr, float flDamage = 5.0f, bool charattached = true);
+	static CFire* BurnEntityUntilDeadWithLifetime(CBaseEntity* pEnt, CBaseEntity* pAttacker = nullptr, float flDamage = 5.0f, float flLifetime = -1.0f, bool charattached = true);
 
 private:
 	static void HurtEntity(CFire* self, CBaseEntity* pEnt);
@@ -44,9 +52,10 @@ private:
 	bool m_bActive;
 
 	edict_t* m_pAttachedEdict; // Edicts are generally safer, this is used so that once the Attached doesn't exist anymore we know about it.
-	bool m_bBurnAttachedTillDead;
+	BurnFlag m_bBurnAttachedTillDead;
 	CBaseEntity* m_pOwner;
 	bool m_bSpawnedIn;
+	bool m_bCharAttached;
 
 	float m_fSmokeCreateTimer;
 	float m_fFireSoundTimer;

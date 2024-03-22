@@ -80,7 +80,8 @@ inline struct cvar_s* CVAR_CREATE(const char* cv, const char* val, const int fla
 #define GetScreenInfo (*gEngfuncs.pfnGetScreenInfo)
 #define ServerCmd (*gEngfuncs.pfnServerCmd)
 #define EngineClientCmd (*gEngfuncs.pfnClientCmd)
-#define SetCrosshair (*gEngfuncs.pfnSetCrosshair)
+static void SetCrosshairEmpty(HSPRITE hspr, Rect rc, int r, int g, int b) {}
+#define SetCrosshair SetCrosshairEmpty // Sorry!
 #define AngleVectors (*gEngfuncs.pfnAngleVectors)
 
 

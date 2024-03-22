@@ -1804,7 +1804,7 @@ void CBasePlayer::PreThink()
 		bool moving = (pev->button & (IN_FORWARD | IN_BACK | IN_MOVELEFT | IN_MOVERIGHT)) != 0;
 		if ((!run || !moving) && gpGlobals->time > m_flStaminaTimer) // if we aint running then slowly fill our stamina
 			m_flStamina += 5.0f * gpGlobals->frametime;
-		else if (run && moving)
+		else if (run && moving && !FBitSet(pev->flags, FL_FLY))
 		{
 			m_flStamina -= 10.0f * gpGlobals->frametime;
 		}
@@ -2932,7 +2932,7 @@ void CBasePlayer::Spawn()
 	g_pGameRules->PlayerSpawn(this);
 
 #if _DEBUG
-	if (FStrEq(STRING(gpGlobals->mapname), "testmap")) 
+	if (FStrEq(STRING(gpGlobals->mapname), "testmap") || FStrEq(STRING(gpGlobals->mapname), "combattest")) 
 	{
 		CheatImpulseCommands(101);
 	}

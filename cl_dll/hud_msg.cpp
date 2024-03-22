@@ -24,9 +24,6 @@
 #include "particleman.h"
 extern IParticleMan* g_pParticleMan;
 
-extern TEMPENTITY* pFlare; // Vit_amiN
-
-
 /// USER-DEFINED SERVER MESSAGE HANDLERS
 
 bool CHud::MsgFunc_ResetHUD(const char* pszName, int iSize, void* pbuf)
@@ -78,9 +75,6 @@ void CHud::MsgFunc_InitHUD(const char* pszName, int iSize, void* pbuf)
 	//TODO: needs to be called on every map change, not just when starting a new game
 	if (g_pParticleMan)
 		g_pParticleMan->ResetParticles();
-
-	//Probably not a good place to put this.
-	pFlare = NULL; // Vit_amiN: clear egon's beam flare
 }
 
 

@@ -387,6 +387,25 @@ void VectorAngles(const float* forward, float* angles)
 	angles[2] = 0;
 }
 
+bool VectorGreaterThan(const Vector& vec1, const Vector& vec2)
+{
+	return vec1.x > vec2.x && vec1.y > vec2.y && vec1.z > vec2.z;
+}
+
+bool VectorGreaterThanEq(const Vector& vec1, const Vector& vec2)
+{
+	return vec1.x >= vec2.x && vec1.y >= vec2.y && vec1.z >= vec2.z;
+}
+
+bool VectorLessThan(const Vector& vec1, const Vector& vec2)
+{
+	return vec1.x < vec2.x && vec1.y < vec2.y && vec1.z < vec2.z;
+}
+bool VectorLessThanEq(const Vector& vec1, const Vector& vec2)
+{
+	return vec1.x <= vec2.x && vec1.y <= vec2.y && vec1.z <= vec2.z;
+}
+
 /*
 ================
 ConcatTransforms

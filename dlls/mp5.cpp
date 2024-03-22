@@ -113,7 +113,7 @@ void CMP5::PrimaryAttack()
 	}
 
 	pev->fov += gpGlobals->frametime;
-	pev->fov = std::clamp<float>(pev->fov, 0.0f, 0.1f);
+	pev->fov = std::clamp<float>(pev->fov, 0.0f, 0.80f);
 
 	m_pPlayer->m_iWeaponVolume = NORMAL_GUN_VOLUME;
 	m_pPlayer->m_iWeaponFlash = NORMAL_GUN_FLASH;
@@ -153,7 +153,10 @@ void CMP5::PrimaryAttack()
 	flags = 0;
 #endif
 
-	PLAYBACK_EVENT_FULL(flags, m_pPlayer->edict(), m_usMP5, 0.0, g_vecZero, g_vecZero, vecDir.x, vecDir.y, 0, 0, 0, 0);
+	int fovspread = 0;
+	memcpy(&fovspread, &pev->fov, sizeof(float));
+
+	PLAYBACK_EVENT_FULL(flags, m_pPlayer->edict(), m_usMP5, 0.0, g_vecZero, g_vecZero, vecDir.x, vecDir.y, 0, fovspread, 0, 0);
 
 	if (0 == m_iClip && m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0)
 		// HEV suit - indicate out of ammo condition

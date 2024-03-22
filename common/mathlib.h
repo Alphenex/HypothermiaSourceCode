@@ -104,6 +104,11 @@ float AngleBetweenVectors(const float* v1, const float* v2);
 void VectorMatrix(const Vector& forward, Vector& right, Vector& up);
 void VectorAngles(const float* forward, float* angles);
 
+bool VectorGreaterThan(const Vector& vec1, const Vector& vec2);
+bool VectorGreaterThanEq(const Vector& vec1, const Vector& vec2);
+bool VectorLessThan(const Vector& vec1, const Vector& vec2);
+bool VectorLessThanEq(const Vector& vec1, const Vector& vec2);
+
 int InvertMatrix(const float* m, float* out);
 
 int BoxOnPlaneSide(const Vector& emins, const Vector& emaxs, struct mplane_s* plane);

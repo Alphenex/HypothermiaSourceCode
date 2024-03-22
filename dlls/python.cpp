@@ -168,8 +168,7 @@ void CPython::PrimaryAttack()
 	Vector vecAiming = m_pPlayer->GetAutoaimVector(AUTOAIM_10DEGREES);
 
 	pev->fov += 5.0f * gpGlobals->frametime;
-	pev->fov = std::clamp<float>(pev->fov, 0.0f, 0.5f);
-	ALERT(at_console, "%f\n", pev->fov);
+	pev->fov = std::clamp<float>(pev->fov, 0.0f, 0.075f);
 
 	Vector vecDir;
 	Vector fovvec = Vector(pev->fov, pev->fov, pev->fov);
@@ -182,7 +181,10 @@ void CPython::PrimaryAttack()
 	flags = 0;
 #endif
 
-	PLAYBACK_EVENT_FULL(flags, m_pPlayer->edict(), m_usFirePython, 0.0, g_vecZero, g_vecZero, vecDir.x, vecDir.y, 0, 0, 0, 0);
+	int fovspread = 0;
+	memcpy(&fovspread, &pev->fov, sizeof(float));
+
+	PLAYBACK_EVENT_FULL(flags, m_pPlayer->edict(), m_usFirePython, 0.0, g_vecZero, g_vecZero, vecDir.x, vecDir.y, 0, fovspread, 0, 0);
 
 	if (0 == m_iClip && m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0)
 		// HEV suit - indicate out of ammo condition
@@ -220,7 +222,7 @@ void CPython::WeaponIdle()
 
 	m_pPlayer->GetAutoaimVector(AUTOAIM_10DEGREES);
 
-	pev->fov -= 0.1f * gpGlobals->frametime;
+	pev->fov -= 0.05f * gpGlobals->frametime;
 
 	if (m_flTimeWeaponIdle > UTIL_WeaponTimeBase())
 		return;

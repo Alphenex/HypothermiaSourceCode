@@ -460,6 +460,9 @@ extern void DecalGunshot(TraceResult* pTrace, int iBulletType);
 extern void SpawnBlood(Vector vecSpot, int bloodColor, float flDamage);
 extern int DamageDecal(CBaseEntity* pEntity, int bitsDamageType);
 extern void RadiusDamage(Vector vecSrc, entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, float flRadius, int iClassIgnore, int bitsDamageType);
+extern void RadiusBurn(Vector vecSrc, entvars_t* pevAttacker, float flDamage, float flRadius, int iClassIgnore, float flLifetime);
+extern void RadiusBurnUntilDead(Vector vecSrc, entvars_t* pevAttacker, float flDamage, float flRadius, int iClassIgnore);
+extern void RadiusBurnUntilDead(Vector vecSrc, entvars_t* pevAttacker, float flDamage, float flRadius, int iClassIgnore, float flLifetime);
 
 typedef struct
 {
@@ -977,9 +980,14 @@ enum egon_e
 	EGON_HOLSTER
 };
 
+enum EGON_FIRESTATE
+{
+	FIRE_OFF,
+	FIRE_CHARGE
+};
+
 #define EGON_PRIMARY_VOLUME 450
-#define EGON_BEAM_SPRITE "sprites/xbeam1.spr"
-#define EGON_FLARE_SPRITE "sprites/XSpark1.spr"
+#define EGON_FLAME_SPRITE "sprites/hotglow2.spr"
 #define EGON_SOUND_OFF "weapons/egon_off1.wav"
 #define EGON_SOUND_RUN "weapons/egon_run3.wav"
 #define EGON_SOUND_STARTUP "weapons/egon_windup2.wav"
@@ -1001,17 +1009,12 @@ public:
 	bool Deploy() override;
 	void Holster() override;
 
-	void UpdateEffect(const Vector& startPoint, const Vector& endPoint, float timeBlend);
-
-	void CreateEffect();
-	void DestroyEffect();
-
 	void EndAttack();
 	void Attack();
 	void PrimaryAttack() override;
 	bool ShouldWeaponIdle() override { return true; }
 	void WeaponIdle() override;
-
+	
 	float m_flAmmoUseTime; // since we use < 1 point of ammo per update, we subtract ammo on a timer.
 
 	float GetPulseInterval();
@@ -1023,8 +1026,6 @@ public:
 
 	void UseAmmo(int count);
 
-	CSprite* m_pSprite;
-
 	bool UseDecrement() override
 	{
 #if defined(CLIENT_WEAPONS)
@@ -1033,8 +1034,19 @@ public:
 		return false;
 #endif
 	}
+
+	unsigned short m_usEgonStop;
+
 private:
 	float m_shootTime;
+	float m_shakeTime;
+	bool m_deployed;
+
+	unsigned short m_usEgonFire;
+	float m_flFireSoundLoopTimeOffset;
+	float m_flFireSoundLoopTimer; // because Goldsrc is very gay
+
+	unsigned short m_usFlameID;
 };
 
 enum hgun_e

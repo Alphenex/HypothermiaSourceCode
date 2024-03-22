@@ -1,4 +1,7 @@
 #include "Fire.h"
+#include "player.h"
+
+#include <algorithm>
 
 LINK_ENTITY_TO_CLASS(env_fire, CFire)
 
@@ -13,6 +16,7 @@ TYPEDESCRIPTION CFire::m_SaveData[] =
 		DEFINE_FIELD(CFire, m_bBurnAttachedTillDead, FIELD_BOOLEAN),
 		DEFINE_FIELD(CFire, m_pOwner, FIELD_CLASSPTR),
 		DEFINE_FIELD(CFire, m_bSpawnedIn, FIELD_BOOLEAN),
+		DEFINE_FIELD(CFire, m_bCharAttached, FIELD_BOOLEAN),
 
 		DEFINE_FIELD(CFire, m_fSmokeCreateTimer, FIELD_FLOAT),
 		DEFINE_FIELD(CFire, m_fFireSoundTimer, FIELD_FLOAT)
@@ -59,10 +63,13 @@ void CFire::Spawn()
 		StartFire(); // Then create fire immediately, used so that map entities automatically start fire.
 	}
 
-	if (m_flLifeTime > 0.1f)
-		pev->ltime = gpGlobals->time + m_flLifeTime;
-	else
-		pev->ltime = -1; // Fire will basically never gonna die. 
+	if (!FBitSet(m_bBurnAttachedTillDead, FBURN_UNTILDEADWLIFETIME))
+	{
+		if (m_flLifeTime > 0.1f)
+			pev->ltime = gpGlobals->time + m_flLifeTime;
+		else
+			pev->ltime = -1; // Fire will basically never gonna die.
+	}
 
 	if (m_pFireSprite)
 		m_pFireSprite->pev->frame = RANDOM_LONG(0, m_pFireSprite->Frames() - 1);
@@ -76,19 +83,27 @@ void CFire::Touch(CBaseEntity* pOther)
 		HurtEntity(this, pOther);
 }
 
+static int k = 0;
+
 void CFire::Think()
 {
-	CBaseAnimating* animattached = nullptr;
+	CBaseMonster* animattached = nullptr;
 
 	if (m_bSpawnedIn)
-		animattached = (CBaseAnimating*)m_pAttachedEdict->pvPrivateData;
+		animattached = (CBaseMonster*)m_pAttachedEdict->pvPrivateData;
 
-	if ((gpGlobals->time > pev->ltime && pev->ltime != -1 && m_bActive) || // If the lifetime is passed.
-		(animattached && !m_bBurnAttachedTillDead && !animattached->IsAlive()) ||  // If we have attached object, have Kill flag, and it is dead.
+	if ((FBitSet(m_bBurnAttachedTillDead, FBURN_LIFETIME) && gpGlobals->time > pev->ltime && pev->ltime != -1 && m_bActive) || // If the lifetime is passed.
+		(animattached && FBitSet(m_bBurnAttachedTillDead, FBURN_UNTILDEAD) && !animattached->IsAlive() && m_bActive) || // If we have attached object, have Kill flag, and it is dead.
 		(m_pAttachedEdict && animattached == nullptr)) // If attachment edict exists but it doesn't have private data.
 	{
 		KillFire();
 		return;
+	}
+
+	if (FBitSet(m_bBurnAttachedTillDead, FBURN_UNTILDEADWLIFETIME) && m_bActive && !animattached->IsAlive() && pev->ltime == 0.0f)
+	{
+		m_bBurnAttachedTillDead = FBURN_LIFETIME;
+		pev->ltime = gpGlobals->time + m_flLifeTime;
 	}
 
 	if (m_bActive)
@@ -100,7 +115,7 @@ void CFire::Think()
 
 			// Nasty code, this shouldn't be done every Think BUT what we essentially do here is:
 			// We check if Pelvis bone exists, if that doesn't exist just get Center.
-			animattached->GetBonePosition(1, attpelvispos, attanglepos);
+			GET_BONE_POSITION(m_pAttachedEdict, 0, attpelvispos, attanglepos);
 			if (attpelvispos == Vector(0, 0, 0))
 				attpelvispos = animattached->Center();
 			pev->origin = attpelvispos; // Move with the attached object!
@@ -109,6 +124,7 @@ void CFire::Think()
 		}
 
 		Vector norg = pev->origin + Vector(0, 0, (pev->mins.z + pev->maxs.z - 4 * !m_bSpawnedIn) * 0.5);
+
 		if (m_pFireSprite)
 		{
 			m_pFireSprite->pev->origin = norg;
@@ -121,7 +137,7 @@ void CFire::Think()
 		if (gpGlobals->time > m_fSmokeCreateTimer)
 		{
 			MESSAGE_BEGIN(MSG_PVS, SVC_TEMPENTITY, pev->origin);
-			WRITE_BYTE(TE_BUBBLES);
+			WRITE_BYTE(TE_BUBBLETRAIL);
 			WRITE_COORD(pev->origin.x - 10.0f); // min
 			WRITE_COORD(pev->origin.y - 10.0f);
 			WRITE_COORD(pev->origin.z - 10.0f);
@@ -140,7 +156,7 @@ void CFire::Think()
 		{
 			if (gpGlobals->time > m_fFireSoundTimer)
 			{
-				EMIT_SOUND(edict(), CHAN_VOICE, FIRE_LOOPSOUND, 7.5f, 0.5f);
+				EMIT_SOUND_DYN2(edict(), CHAN_VOICE, FIRE_LOOPSOUND, 7.5f, 0.5f, 0, PITCH_NORM + pev->idealpitch);
 				m_fFireSoundTimer = gpGlobals->time + FIRE_LOOPSOUNDLENGTH;
 			}
 
@@ -149,17 +165,17 @@ void CFire::Think()
 			WRITE_COORD(pev->origin.x); // origin
 			WRITE_COORD(pev->origin.y);
 			WRITE_COORD(pev->origin.z);
-			WRITE_BYTE(12);	 // radius
+			WRITE_BYTE(8);	 // radius
 			WRITE_BYTE(255); // R
 			WRITE_BYTE(150); // G
-			WRITE_BYTE(40);	 // B
+			WRITE_BYTE(0);	 // B
 			WRITE_BYTE(2);	 // life * 10
 			WRITE_BYTE(0);	 // decay
 			MESSAGE_END();
 		}
 	}
 
-	pev->nextthink = gpGlobals->time + 0.020f;
+	pev->nextthink = gpGlobals->time + 0.05f;
 }
 
 void CFire::StartFire()
@@ -168,6 +184,8 @@ void CFire::StartFire()
 		return;
 
 	m_bActive = true;
+
+	pev->idealpitch = RANDOM_LONG(-50, 50); // couldn't be bothered to create a new var;
 
 	if (m_pFireSprite == nullptr) // if Sprite doesn't exist then create it, we shouldn't even ever hit this?
 		CreateSprite();
@@ -178,6 +196,9 @@ void CFire::KillFire()
 	STOP_SOUND(edict(), CHAN_VOICE, FIRE_LOOPSOUND);
 	UTIL_Remove(m_pFireSprite);
 	UTIL_Remove(m_pFireGlowSprite);
+	CBaseEntity* attached = (CBaseEntity*)m_pAttachedEdict->pvPrivateData;
+	if (attached)
+		attached->m_pFire = nullptr;
 	UTIL_Remove(this);
 }
 
@@ -208,7 +229,7 @@ static int s_DontBurnList[] = {
 	CLASS_NONE // We have no idea what it is, just don't burn it >:(
 };
 
-CFire* CFire::BurnEntity(CBaseEntity* pEnt, CBaseEntity* pAttacker, float flLifetime, float flDamage)
+CFire* CFire::BurnEntity(CBaseEntity* pEnt, CBaseEntity* pAttacker, float flDamage, float flLifetime, bool charattached)
 {
 	for (unsigned int i = 0; i < sizeof(s_DontBurnList) / sizeof(int); i++)
 	{
@@ -229,7 +250,9 @@ CFire* CFire::BurnEntity(CBaseEntity* pEnt, CBaseEntity* pAttacker, float flLife
 	fire->m_flLifeTime = flLifetime;
 	fire->m_pOwner = pAttacker;
 	fire->m_pAttachedEdict = pEnt->edict();
+	fire->m_bBurnAttachedTillDead = FBURN_LIFETIME;
 	fire->pev->scale = ratiogen;
+	fire->m_bCharAttached = charattached;
 	fire->Spawn();
 	fire->StartFire();
 
@@ -238,7 +261,7 @@ CFire* CFire::BurnEntity(CBaseEntity* pEnt, CBaseEntity* pAttacker, float flLife
 	return fire;
 }
 
-CFire* CFire::BurnEntityUntilDead(CBaseEntity* pEnt, CBaseEntity* pAttacker, float flDamage)
+CFire* CFire::BurnEntityUntilDead(CBaseEntity* pEnt, CBaseEntity* pAttacker, float flDamage, bool charattached)
 {
 	for (unsigned int i = 0; i < sizeof(s_DontBurnList) / sizeof(int); i++)
 	{
@@ -257,10 +280,11 @@ CFire* CFire::BurnEntityUntilDead(CBaseEntity* pEnt, CBaseEntity* pAttacker, flo
 	CFire* fire = CreateFire();
 	fire->pev->dmg = flDamage;
 	fire->m_flLifeTime = -1;
-	fire->m_bBurnAttachedTillDead = true;
+	fire->m_bBurnAttachedTillDead = FBURN_UNTILDEAD;
 	fire->m_pOwner = pAttacker;
 	fire->m_pAttachedEdict = pEnt->edict();
 	fire->pev->scale = ratiogen;
+	fire->m_bCharAttached = charattached;
 	fire->Spawn();
 	fire->StartFire();
 
@@ -269,30 +293,72 @@ CFire* CFire::BurnEntityUntilDead(CBaseEntity* pEnt, CBaseEntity* pAttacker, flo
 	return fire;
 }
 
-constexpr float dps = 0.5f; // Damage Per Second Timer.
+CFire* CFire::BurnEntityUntilDeadWithLifetime(CBaseEntity* pEnt, CBaseEntity* pAttacker, float flDamage, float flLifetime, bool charattached)
+{
+	for (unsigned int i = 0; i < sizeof(s_DontBurnList) / sizeof(int); i++)
+	{
+		if (pEnt->Classify() == s_DontBurnList[i])
+			return nullptr;
+	}
+
+	if (!pEnt->IsAlive() || pEnt->m_pFire)
+		return nullptr;
+
+	Vector plyhull = VEC_HUMAN_HULL_MAX - VEC_HUMAN_HULL_MIN; // used for comparison
+	Vector enthull = pEnt->pev->maxs - pEnt->pev->mins;
+	Vector ratiohull = Vector(enthull.x / plyhull.x, enthull.y / plyhull.y, enthull.z / plyhull.z);
+	float ratiogen = (float)(ratiohull.x + ratiohull.y + ratiohull.z) / 3.0f;
+
+	CFire* fire = CreateFire();
+	fire->pev->dmg = flDamage;
+	fire->m_flLifeTime = flLifetime;
+	fire->m_bBurnAttachedTillDead = FBURN_UNTILDEADWLIFETIME;
+	fire->m_pOwner = pAttacker;
+	fire->m_pAttachedEdict = pEnt->edict();
+	fire->pev->scale = ratiogen;
+	fire->m_bCharAttached = charattached;
+	fire->Spawn();
+	fire->StartFire();
+
+	pEnt->m_pFire = fire;
+
+	return fire;
+}
+
+constexpr float dps = 1.0f; // Damage Per Second Timer.
 void CFire::HurtEntity(CFire* self, CBaseEntity* pEnt)
 {
+	if (!pEnt->IsAlive()) return; // Why should we hurt a dead ass guy?
 	if (self->pev->dmg <= 0.0f) return;
 	if (pEnt->pev->takedamage == 0) return;
 	if (self->pev->dmgtime > gpGlobals->time && gpGlobals->time != self->pev->pain_finished) return;
 
-	float fldmg = self->pev->dmg * dps;
+	float fldmg = self->pev->dmg * 0.5f;
 
 	if (!self->m_pOwner) pEnt->TakeDamage(self->pev, self->pev, fldmg, DMG_BURN);
 	else pEnt->TakeDamage(self->pev, self->m_pOwner->pev, fldmg, DMG_BURN);
 
 	self->pev->pain_finished = gpGlobals->time;
-	self->pev->dmgtime = gpGlobals->time + dps; // half second delay until this trigger can hurt toucher again
+	self->pev->dmgtime = gpGlobals->time + dps;
 }
 
 void CFire::CreateSprite()
 {
-	m_pFireSprite = CSprite::SpriteCreate(FIRE_SPRITE, pev->origin + Vector(0, 0, (pev->mins.z + pev->maxs.z - 4) * 0.5), true);
-	m_pFireSprite->SetTransparency(kRenderTransAdd, 255, 255, 255, 220, kRenderFxNone);
-	m_pFireSprite->SetScale(pev->scale);
-	m_pFireSprite->pev->framerate = 10.0f;
+	Vector offset = Vector(0, 0, (pev->mins.z + pev->maxs.z - 4) * 0.5);
 
-	m_pFireGlowSprite = CSprite::SpriteCreate(FIREGLOW_SPRITE, pev->origin + Vector(0, 0, (pev->mins.z + pev->maxs.z - 4) * 0.5), true);
+	CBasePlayer* attached = nullptr;
+	if (m_bSpawnedIn)
+		attached = (CBasePlayer*)m_pAttachedEdict->pvPrivateData;
+	
+	if (!attached || !attached->IsPlayer())
+	{
+		m_pFireSprite = CSprite::SpriteCreate(FIRE_SPRITE, pev->origin + offset, true);
+		m_pFireSprite->SetTransparency(kRenderTransAdd, 255, 255, 255, 220, kRenderFxNone);
+		m_pFireSprite->SetScale(pev->scale);
+		m_pFireSprite->pev->framerate = 10.0f;
+	}
+
+	m_pFireGlowSprite = CSprite::SpriteCreate(FIREGLOW_SPRITE, pev->origin + offset, true);
 	m_pFireGlowSprite->SetTransparency(kRenderGlow, 255, 255, 255, 175, kRenderFxNoDissipation);
 	m_pFireGlowSprite->SetScale(pev->scale);
 }

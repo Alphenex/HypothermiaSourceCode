@@ -463,6 +463,11 @@ void EV_FireGlock1(event_args_t* args)
 	Vector vecSrc, vecAiming;
 	Vector up, right, forward;
 
+	int param2 = args->iparam2;
+	float spreadFOV = 0; 
+	memcpy(&spreadFOV, &param2, sizeof(int)); // Convert to float and get spread @Alphenex53
+	spreadFOV *= 17.5f;
+
 	idx = args->entindex;
 	VectorCopy(args->origin, origin);
 	VectorCopy(args->angles, angles);
@@ -478,8 +483,8 @@ void EV_FireGlock1(event_args_t* args)
 		EV_MuzzleFlash();
 		gEngfuncs.pEventAPI->EV_WeaponAnimation(empty ? GLOCK_SHOOT_EMPTY : GLOCK_SHOOT, 0);
 
-		V_PunchAxis(0, RANDOM_FLOAT(-2.0f, -1.0f));
-		V_PunchAxis(1, RANDOM_FLOAT(-1.0f, 1.0f));
+		V_PunchAxis(0, RANDOM_FLOAT(-2.0f - spreadFOV, -1.0f - spreadFOV));
+		V_PunchAxis(1, RANDOM_FLOAT(-1.0f - spreadFOV, 1.0f + spreadFOV));
 	}
 
 	EV_GetDefaultShellInfo(args, origin, velocity, ShellVelocity, ShellOrigin, forward, right, up, 20, -12, 4);
@@ -510,6 +515,11 @@ void EV_FireGlock2(event_args_t* args)
 	Vector vecSrc, vecAiming;
 	Vector up, right, forward;
 
+	int param2 = args->iparam2;
+	float spreadFOV = 0;
+	memcpy(&spreadFOV, &param2, sizeof(int)); // Convert to float and get spread @Alphenex53
+	spreadFOV *= 33.0f;
+
 	idx = args->entindex;
 	VectorCopy(args->origin, origin);
 	VectorCopy(args->angles, angles);
@@ -526,8 +536,8 @@ void EV_FireGlock2(event_args_t* args)
 		EV_MuzzleFlash();
 		gEngfuncs.pEventAPI->EV_WeaponAnimation(empty ? GLOCK_SHOOT_EMPTY : GLOCK_SHOOT, 0);
 
-		V_PunchAxis(0, RANDOM_FLOAT(-4.0f, -2.0f));  
-		V_PunchAxis(1, RANDOM_FLOAT(-1.0f, 1.0f));
+		V_PunchAxis(0, RANDOM_FLOAT(-4.0f - spreadFOV, -2.0f - spreadFOV));
+		V_PunchAxis(1, RANDOM_FLOAT(-1.0f - spreadFOV, 1.0f + spreadFOV));
 	}
 
 	EV_GetDefaultShellInfo(args, origin, velocity, ShellVelocity, ShellOrigin, forward, right, up, 20, -12, 4);
@@ -676,6 +686,11 @@ void EV_FireMP5(event_args_t* args)
 	Vector vecSrc, vecAiming;
 	Vector up, right, forward;
 
+	int param2 = args->iparam2;
+	float spreadFOV = 0;
+	memcpy(&spreadFOV, &param2, sizeof(int)); // Convert to float and get spread @Alphenex53
+	spreadFOV *= 20.0f;
+
 	idx = args->entindex;
 	VectorCopy(args->origin, origin);
 	VectorCopy(args->angles, angles);
@@ -691,8 +706,8 @@ void EV_FireMP5(event_args_t* args)
 		EV_MuzzleFlash();
 		gEngfuncs.pEventAPI->EV_WeaponAnimation(MP5_FIRE1 + gEngfuncs.pfnRandomLong(0, 2), 0);
 
-		V_PunchAxis(0, gEngfuncs.pfnRandomFloat(-1.5f, 1.5f));
-		V_PunchAxis(1, gEngfuncs.pfnRandomFloat(-0.5f, 0.5f));
+		V_PunchAxis(0, gEngfuncs.pfnRandomFloat(-1.5f - spreadFOV, 1.5f + spreadFOV));
+		V_PunchAxis(1, gEngfuncs.pfnRandomFloat(-0.5f - spreadFOV, 0.5f + spreadFOV));
 	}
 
 	EV_GetDefaultShellInfo(args, origin, velocity, ShellVelocity, ShellOrigin, forward, right, up, 20, -12, 4);
@@ -760,6 +775,11 @@ void EV_FirePython(event_args_t* args)
 	Vector vecSrc, vecAiming;
 	Vector up, right, forward;
 
+	int param2 = args->iparam2;
+	float spreadFOV = 0;
+	memcpy(&spreadFOV, &param2, sizeof(int)); // Convert to float and get spread @Alphenex53
+	spreadFOV *= 33.0f;
+
 	idx = args->entindex;
 	VectorCopy(args->origin, origin);
 	VectorCopy(args->angles, angles);
@@ -776,8 +796,8 @@ void EV_FirePython(event_args_t* args)
 		EV_MuzzleFlash();
 		gEngfuncs.pEventAPI->EV_WeaponAnimation(PYTHON_FIRE1, multiplayer ? 1 : 0);
 
-		V_PunchAxis(0, RANDOM_FLOAT(-10.0f, -7.5f));
-		V_PunchAxis(1, RANDOM_FLOAT(-2.0f, -2.0f));
+		V_PunchAxis(0, RANDOM_FLOAT(-10.0f - spreadFOV, -7.5f - spreadFOV));
+		V_PunchAxis(1, RANDOM_FLOAT(-3.0f - spreadFOV, -1.0f - spreadFOV));
 	}
 
 	switch (gEngfuncs.pfnRandomLong(0, 1))
@@ -1312,95 +1332,39 @@ void EV_FireRpg(event_args_t* args)
 int g_fireAnims1[] = {EGON_FIRE1, EGON_FIRE2, EGON_FIRE3, EGON_FIRE4};
 int g_fireAnims2[] = {EGON_ALTFIRECYCLE};
 
-TEMPENTITY* pFlare; // Vit_amiN: egon's beam flare
-
-void EV_EgonFlareCallback(struct tempent_s* ent, float frametime, float currenttime)
-{
-	float delta = currenttime - ent->tentOffset.z; // time past since the last scale
-	if (delta >= ent->tentOffset.y)
-	{
-		ent->entity.curstate.scale += ent->tentOffset.x * delta;
-		ent->tentOffset.z = currenttime;
-	}
-}
-
 void EV_EgonFire(event_args_t* args)
 {
 	int idx, iFireMode;
 	Vector origin;
+	Vector angles;
 
 	idx = args->entindex;
 	VectorCopy(args->origin, origin);
-	iFireMode = args->iparam2;
+	VectorCopy(args->angles, angles);
 	bool iStartup = 0 != args->bparam1;
 
+	Vector vecSrc, vecAiming;
+	Vector up, right, forward;
+
+	idx = args->entindex;
+	VectorCopy(args->origin, origin);
+	AngleVectors(angles, forward, right, up);
 
 	if (iStartup)
-	{
-		if (iFireMode == 1)
-			gEngfuncs.pEventAPI->EV_PlaySound(idx, origin, CHAN_WEAPON, EGON_SOUND_STARTUP, 0.98, ATTN_NORM, 0, 125);
-		else
-			gEngfuncs.pEventAPI->EV_PlaySound(idx, origin, CHAN_WEAPON, EGON_SOUND_STARTUP, 0.9, ATTN_NORM, 0, 100);
-	}
+		gEngfuncs.pEventAPI->EV_PlaySound(idx, origin, CHAN_WEAPON, EGON_SOUND_STARTUP, 0.98, ATTN_NORM, 0, 125);
 	else
 	{
-		//If there is any sound playing already, kill it.
-		//This is necessary because multiple sounds can play on the same channel at the same time.
-		//In some cases, more than 1 run sound plays when the egon stops firing, in which case only the earliest entry in the list is stopped.
-		//This ensures no more than 1 of those is ever active at the same time.
-		gEngfuncs.pEventAPI->EV_StopSound(idx, CHAN_STATIC, EGON_SOUND_RUN);
-
-		if (iFireMode == 1)
-			gEngfuncs.pEventAPI->EV_PlaySound(idx, origin, CHAN_STATIC, EGON_SOUND_RUN, 0.98, ATTN_NORM, 0, 125);
-		else
-			gEngfuncs.pEventAPI->EV_PlaySound(idx, origin, CHAN_STATIC, EGON_SOUND_RUN, 0.9, ATTN_NORM, 0, 100);
+		// If there is any sound playing already, kill it.
+		// This is necessary because multiple sounds can play on the same channel at the same time.
+		// In some cases, more than 1 run sound plays when the egon stops firing, in which case only the earliest entry in the list is stopped.
+		// This ensures no more than 1 of those is ever active at the same time.
 	}
 
-	//Only play the weapon anims if I shot it.
+	// Only play the weapon anims if I shot it.
 	if (EV_IsLocal(idx))
-		gEngfuncs.pEventAPI->EV_WeaponAnimation(g_fireAnims1[gEngfuncs.pfnRandomLong(0, 3)], 0);
-
-	if (iStartup && EV_IsLocal(idx) && !pFlare && 0 != cl_lw->value) //Adrian: Added the cl_lw check for those lital people that hate weapon prediction.
 	{
-		Vector vecSrc, vecEnd, angles, forward, right, up;
-		pmtrace_t tr;
-
-		cl_entity_t* pl = gEngfuncs.GetEntityByIndex(idx);
-
-		if (pl)
-		{
-			VectorCopy(gHUD.m_vecAngles, angles);
-
-			AngleVectors(angles, forward, right, up);
-
-			EV_GetGunPosition(args, vecSrc, pl->origin);
-			EV_HLDM_MuzzleFlash(vecSrc, RANDOM_FLOAT(-10.0f, 10.0f), Vector(255, 70, 20));
-
-			VectorMA(vecSrc, 2048, forward, vecEnd);
-
-			gEngfuncs.pEventAPI->EV_SetUpPlayerPrediction(0, 1);
-
-			// Store off the old count
-			gEngfuncs.pEventAPI->EV_PushPMStates();
-
-			// Now add in all of the players.
-			gEngfuncs.pEventAPI->EV_SetSolidPlayers(idx - 1);
-
-			gEngfuncs.pEventAPI->EV_SetTraceHull(2);
-			gEngfuncs.pEventAPI->EV_PlayerTrace(vecSrc, vecEnd, PM_STUDIO_BOX, -1, &tr);
-
-			gEngfuncs.pEventAPI->EV_PopPMStates();
-
-			// Vit_amiN: egon beam flare
-			pFlare = gEngfuncs.pEfxAPI->R_TempSprite(tr.endpos, vec3_origin, 1.0,
-				gEngfuncs.pEventAPI->EV_FindModelIndex(EGON_FLARE_SPRITE),
-				kRenderGlow, kRenderFxNoDissipation, 1.0, 99999, FTENT_SPRCYCLE | FTENT_PERSIST);
-		}
-	}
-
-	if (pFlare) // Vit_amiN: store the last mode for EV_EgonStop()
-	{
-		pFlare->tentOffset.x = (iFireMode == 1) ? 1.0f : 0.0f;
+		// Don't play the anims because they don't seem right lol @Alphenex53
+		//gEngfuncs.pEventAPI->EV_WeaponAnimation(g_fireAnims1[gEngfuncs.pfnRandomLong(0, 3)], 0);
 	}
 }
 
@@ -1412,7 +1376,7 @@ void EV_EgonStop(event_args_t* args)
 	idx = args->entindex;
 	VectorCopy(args->origin, origin);
 
-	gEngfuncs.pEventAPI->EV_StopSound(idx, CHAN_STATIC, EGON_SOUND_RUN);
+	//gEngfuncs.pEventAPI->EV_StopSound(idx, CHAN_STATIC, EGON_SOUND_RUN);
 
 	//Only stop the sound if the event was sent by the same source as the owner of the egon.
 	//If the local player owns the egon then only the local event should play this sound.
@@ -1422,26 +1386,6 @@ void EV_EgonStop(event_args_t* args)
 
 	if (EV_IsLocal(idx))
 	{
-		if (pFlare) // Vit_amiN: egon beam flare
-		{
-			pFlare->die = gEngfuncs.GetClientTime();
-
-			if (gEngfuncs.GetMaxClients() == 1 || (pFlare->flags & FTENT_NOMODEL) == 0)
-			{
-				if (pFlare->tentOffset.x != 0.0f) // true for iFireMode == FIRE_WIDE
-				{
-					pFlare->callback = &EV_EgonFlareCallback;
-					pFlare->fadeSpeed = 2.0;			// fade out will take 0.5 sec
-					pFlare->tentOffset.x = 10.0;		// scaling speed per second
-					pFlare->tentOffset.y = 0.1;			// min time between two scales
-					pFlare->tentOffset.z = pFlare->die; // the last callback run time
-					pFlare->flags = FTENT_FADEOUT | FTENT_CLIENTCUSTOM;
-				}
-			}
-
-			pFlare = NULL;
-		}
-
 		// HACK: only reset animation if the Egon is still equipped.
 		if (g_CurrentWeaponId == WEAPON_EGON)
 		{
