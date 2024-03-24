@@ -22,6 +22,8 @@ public:
 	void Touch(CBaseEntity* pOther) override; // Probably call CTriggerHurt::HurtTouch
 
 	void Think() override;
+
+	void Killed(entvars_t* pevAttacker, int iGib) override;
  
 	void StartFire();
 	void KillFire();

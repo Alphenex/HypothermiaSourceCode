@@ -1013,6 +1013,7 @@ void ShutdownInput()
 #include "interface.h"
 void CL_UnloadParticleMan();
 
+#include "AudioManager.h"
 
 void DLLEXPORT HUD_Shutdown()
 {
@@ -1020,7 +1021,8 @@ void DLLEXPORT HUD_Shutdown()
 
 	ShutdownInput();
 
-
 	FileSystem_FreeFileSystem();
 	CL_UnloadParticleMan();
+
+	HT::FreeAudioLib();
 }

@@ -135,6 +135,7 @@ public:
 
 	bool m_fActive;	 // only true when the entity is playing a looping sound
 	bool m_fLooping; // true when the sound played will loop
+	bool m_bOneTimer;
 };
 
 LINK_ENTITY_TO_CLASS(ambient_generic, CAmbientGeneric);
@@ -143,6 +144,7 @@ TYPEDESCRIPTION CAmbientGeneric::m_SaveData[] =
 		DEFINE_FIELD(CAmbientGeneric, m_flAttenuation, FIELD_FLOAT),
 		DEFINE_FIELD(CAmbientGeneric, m_fActive, FIELD_BOOLEAN),
 		DEFINE_FIELD(CAmbientGeneric, m_fLooping, FIELD_BOOLEAN),
+		DEFINE_FIELD(CAmbientGeneric, m_bOneTimer, FIELD_BOOLEAN),
 
 		// HACKHACK - This is not really in the spirit of the save/restore design, but save this
 		// out as a binary data block.  If the dynpitchvol_t is changed, old saved games will NOT
@@ -220,7 +222,6 @@ void CAmbientGeneric::Spawn()
 	Precache();
 }
 
-
 void CAmbientGeneric::Precache()
 {
 	char* szSoundFile = (char*)STRING(pev->message);
@@ -241,9 +242,7 @@ void CAmbientGeneric::Precache()
 	}
 	if (m_fActive)
 	{
-		UTIL_EmitAmbientSound(ENT(pev), pev->origin, szSoundFile,
-			(m_dpv.vol * 0.01), m_flAttenuation, SND_SPAWNING, m_dpv.pitch);
-
+		m_bOneTimer = true;
 		pev->nextthink = gpGlobals->time + 0.1;
 	}
 }
@@ -256,6 +255,13 @@ void CAmbientGeneric::Precache()
 void CAmbientGeneric::RampThink()
 {
 	char* szSoundFile = (char*)STRING(pev->message);
+
+	if (m_bOneTimer)
+	{
+		UTIL_EmitAmbientSound(ENT(pev), pev->origin, szSoundFile, (m_dpv.vol * 0.01), m_flAttenuation, SND_SPAWNING, m_dpv.pitch, m_fLooping);
+		m_bOneTimer = false;
+	}
+
 	int pitch = m_dpv.pitch;
 	int vol = m_dpv.vol;
 	int flags = 0;
@@ -292,7 +298,7 @@ void CAmbientGeneric::RampThink()
 
 			// shut sound off
 			UTIL_EmitAmbientSound(ENT(pev), pev->origin, szSoundFile,
-				0, 0, SND_STOP, 0);
+				0, 0, SND_STOP, 0, m_fLooping);
 
 			// return without setting nextthink
 			return;
@@ -336,7 +342,7 @@ void CAmbientGeneric::RampThink()
 
 			// shut sound off
 			UTIL_EmitAmbientSound(ENT(pev), pev->origin, szSoundFile,
-				0, 0, SND_STOP, 0);
+				0, 0, SND_STOP, 0, m_fLooping);
 
 			// return without setting nextthink
 			return;
@@ -442,7 +448,7 @@ void CAmbientGeneric::RampThink()
 			pitch = PITCH_NORM + 1; // don't send 'no pitch' !
 
 		UTIL_EmitAmbientSound(ENT(pev), pev->origin, szSoundFile,
-			(vol * 0.01), m_flAttenuation, flags, pitch);
+			(vol * 0.01), m_flAttenuation, flags, pitch, m_fLooping);
 	}
 
 	// update ramps at 5hz
@@ -564,7 +570,7 @@ void CAmbientGeneric::ToggleUse(CBaseEntity* pActivator, CBaseEntity* pCaller, U
 		m_dpv.pitch = fraction * 255;
 
 		UTIL_EmitAmbientSound(ENT(pev), pev->origin, szSoundFile,
-			0, 0, SND_CHANGE_PITCH, m_dpv.pitch);
+			0, 0, SND_CHANGE_PITCH, m_dpv.pitch, m_fLooping);
 
 		return;
 	}
@@ -619,7 +625,7 @@ void CAmbientGeneric::ToggleUse(CBaseEntity* pActivator, CBaseEntity* pCaller, U
 			}
 			else
 				UTIL_EmitAmbientSound(ENT(pev), pev->origin, szSoundFile,
-					0, 0, SND_STOP, 0);
+					0, 0, SND_STOP, 0, m_fLooping);
 		}
 	}
 	else
@@ -635,14 +641,14 @@ void CAmbientGeneric::ToggleUse(CBaseEntity* pActivator, CBaseEntity* pCaller, U
 		else
 			// shut sound off now - may be interrupting a long non-looping sound
 			UTIL_EmitAmbientSound(ENT(pev), pev->origin, szSoundFile,
-				0, 0, SND_STOP, 0);
+				0, 0, SND_STOP, 0, m_fLooping);
 
 		// init all ramp params for startup
 
 		InitModulationParms();
 
 		UTIL_EmitAmbientSound(ENT(pev), pev->origin, szSoundFile,
-			(m_dpv.vol * 0.01), m_flAttenuation, 0, m_dpv.pitch);
+			(m_dpv.vol * 0.01), m_flAttenuation, 0, m_dpv.pitch, m_fLooping);
 
 		pev->nextthink = gpGlobals->time + 0.1;
 	}
@@ -1567,7 +1573,10 @@ void TEXTURETYPE_Init()
 
 	pMemFile = g_engfuncs.pfnLoadFileForMe("sound/materials.txt", &fileSize);
 	if (!pMemFile)
+	{
+		ALERT(at_console, "Couldn't find the material file.. what the heck?!\n");
 		return;
+	}
 
 	// for each line in the file...
 	while (memfgets(pMemFile, fileSize, filePos, buffer, 511) != NULL && (gcTextures < CTEXTURESMAX))
@@ -1780,6 +1789,15 @@ float TEXTURETYPE_PlaySound(TraceResult* ptr, Vector vecSrc, Vector vecEnd, int 
 		rgsz[1] = "weapons/bullet_hit2.wav";
 		fattn = 1.0;
 		cnt = 2;
+		break;
+
+	case CHAR_TEX_SNOW:
+		fvol = 0.9;
+		fvolbar = 0.1;
+		rgsz[0] = "player/pl_snow1.wav";
+		rgsz[1] = "player/pl_snow2.wav";
+		rgsz[2] = "player/pl_snow3.wav";
+		cnt = 3;
 		break;
 	}
 

@@ -140,3 +140,18 @@ bool CHud::MsgFunc_Weapons(const char* pszName, int iSize, void* pbuf)
 
 	return true;
 }
+
+#include "AudioManager.h"
+
+bool CHud::MsgFunc_Audio(const char* pszName, int iSize, void* pbuf)
+{
+	BEGIN_READ(pbuf, iSize);
+
+	char type = READ_BYTE(); // Play Sound, Play Music, Stop Audio, Load Sound, Load Music
+	float volume = READ_COORD();
+	const char* path = READ_STRING();
+
+	HT::PlayAudio(path, volume, (AUDIOTYPE)type);
+
+	return true;
+}

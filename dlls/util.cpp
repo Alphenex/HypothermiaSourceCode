@@ -642,11 +642,24 @@ void UTIL_MakeInvVectors(const Vector& vec, globalvars_t* pgv)
 	SWAP(pgv->v_right.z, pgv->v_up.y, tmp);
 }
 
+#include <string>
 
-void UTIL_EmitAmbientSound(edict_t* entity, const Vector& vecOrigin, const char* samp, float vol, float attenuation, int fFlags, int pitch)
+void UTIL_EmitAmbientSound(edict_t* entity, const Vector& vecOrigin, const char* samp, float vol, float attenuation, int fFlags, int pitch, bool loop)
 {
 	float rgfl[3];
 	vecOrigin.CopyToArray(rgfl);
+
+	if (attenuation == ATTN_NONE)
+	{
+#ifndef CLIENT_DLL
+		MESSAGE_BEGIN(MSG_BROADCAST, gmsgAudio);
+		WRITE_BYTE((int)loop);
+		WRITE_COORD(vol);
+		WRITE_STRING(samp);
+		MESSAGE_END();
+#endif
+		return;
+	}
 
 	if (samp && *samp == '!')
 	{

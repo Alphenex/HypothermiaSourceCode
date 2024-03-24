@@ -953,6 +953,11 @@ void ClientPrecache()
 	PRECACHE_SOUND("player/pl_dirt3.wav");
 	PRECACHE_SOUND("player/pl_dirt4.wav");
 
+	PRECACHE_SOUND("player/pl_snow1.wav"); // walk on snow
+	PRECACHE_SOUND("player/pl_snow2.wav");
+	PRECACHE_SOUND("player/pl_snow3.wav");
+	PRECACHE_SOUND("player/pl_snow4.wav");
+
 	PRECACHE_SOUND("player/pl_duct1.wav"); // walk in duct
 	PRECACHE_SOUND("player/pl_duct2.wav");
 	PRECACHE_SOUND("player/pl_duct3.wav");
@@ -1033,6 +1038,8 @@ void ClientPrecache()
 	PRECACHE_SOUND("player/geiger3.wav");
 	PRECACHE_SOUND("player/geiger2.wav");
 	PRECACHE_SOUND("player/geiger1.wav");
+
+	PRECACHE_SOUND("player/breathe3.wav");
 
 	if (giPrecacheGrunt)
 		UTIL_PrecacheOther("monster_human_grunt");

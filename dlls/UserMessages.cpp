@@ -69,4 +69,9 @@ void LinkUserMessages()
 	gmsgFog = REG_USER_MSG("Fog", 9);
 
 	gmsgStamina = REG_USER_MSG("Stamina", 2); // 1 Short
+
+	// byte: type 
+	// coord: volume
+	// string: path
+	gmsgAudio = REG_USER_MSG("Audio", -1);
 }

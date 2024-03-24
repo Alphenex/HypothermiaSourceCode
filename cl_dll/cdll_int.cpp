@@ -39,6 +39,8 @@
 #include "vgui_TeamFortressViewport.h"
 #include "filesystem_utils.h"
 
+#include "AudioManager.h"
+
 cl_enginefunc_t gEngfuncs;
 CHud gHUD;
 TeamFortressViewport* gViewPort = NULL;
@@ -142,6 +144,11 @@ static bool CL_InitClient()
 		return false;
 	}
 
+	if (!HT::InitAudioLib())
+	{
+		return false;
+	}
+
 	// get tracker interface, if any
 	return true;
 }
@@ -187,6 +194,8 @@ int DLLEXPORT HUD_VidInit()
 
 	VGui_Startup();
 
+	HT::StopAudios();
+
 	return 1;
 }
 
@@ -223,6 +232,8 @@ int DLLEXPORT HUD_Redraw(float time, int intermission)
 	//	RecClHudRedraw(time, intermission);
 
 	gHUD.Redraw(time, 0 != intermission);
+
+	HT::UpdateAudios();
 
 	return 1;
 }

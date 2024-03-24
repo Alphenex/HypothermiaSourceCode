@@ -228,9 +228,10 @@ bool CHudHealth::Draw(float flTime)
 		int iWidth = HealthWidth / 10;
 		UnpackRGB(r, g, b, RGB_YELLOWISH);
 		FillRGBA(x, y, iWidth, iHeight, r, g, b, a);
+
+		DrawDamage(flTime);
 	}
 
-	DrawDamage(flTime);
 	return DrawPain(flTime);
 }
 

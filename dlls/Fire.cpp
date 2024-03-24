@@ -178,6 +178,16 @@ void CFire::Think()
 	pev->nextthink = gpGlobals->time + 0.05f;
 }
 
+void CFire::Killed(entvars_t* pevAttacker, int iGib)
+{
+	STOP_SOUND(edict(), CHAN_VOICE, FIRE_LOOPSOUND);
+	UTIL_Remove(m_pFireSprite);
+	UTIL_Remove(m_pFireGlowSprite);
+	CBaseEntity* attached = (CBaseEntity*)m_pAttachedEdict->pvPrivateData;
+	if (attached)
+		attached->m_pFire = nullptr;
+}
+
 void CFire::StartFire()
 {
 	if (m_bActive) // If the fire is already active then don't do anything!

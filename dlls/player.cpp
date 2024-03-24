@@ -1814,8 +1814,13 @@ void CBasePlayer::PreThink()
 		m_flStamina = 100;
 	else if (m_flStamina < 0)
 	{
+		if (gpGlobals->time > m_flStaminaTimer)
+		{
+			EMIT_SOUND_DYN2(edict(), CHAN_VOICE, "player/breathe3.wav", 10.0f, ATTN_NORM, 0, PITCH_NORM);
+			m_flStaminaTimer = gpGlobals->time + 3.5f;
+		}
+
 		m_flStamina = 0;
-		m_flStaminaTimer = gpGlobals->time + 3.0f;
 	}
 
 	UTIL_MakeVectors(pev->v_angle); // is this still used?
@@ -4938,13 +4943,13 @@ void CStripWeapons::Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE 
 	{
 		pPlayer = (CBasePlayer*)pActivator;
 	}
-	else if (!g_pGameRules->IsDeathmatch())
+	else
 	{
 		pPlayer = (CBasePlayer*)UTIL_GetLocalPlayer();
 	}
 
 	if (pPlayer)
-		pPlayer->RemoveAllItems(false);
+		pPlayer->RemoveAllItems(true);
 }
 
 

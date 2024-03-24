@@ -64,6 +64,9 @@
     <Filter Include="Source Files\cl_dll\particleman">
       <UniqueIdentifier>{7085339d-2b33-4cdf-846c-0e4c7d33add8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\raudio">
+      <UniqueIdentifier>{36b946c6-2879-4c06-a682-d0e4308810cf}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\dlls\crossbow.cpp">
@@ -325,6 +328,18 @@
       <Filter>Source Files\cl_dll</Filter>
     </ClCompile>
     <ClCompile Include="..\..\cl_dll\stamina.cpp">
+      <Filter>Source Files\cl_dll</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\external\RAUDIO\external\qoaplay.c">
+      <Filter>Source Files\raudio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\external\RAUDIO\external\stb_vorbis.c">
+      <Filter>Source Files\raudio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\external\RAUDIO\raudio.c">
+      <Filter>Source Files\raudio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\cl_dll\AudioManager.cpp">
       <Filter>Source Files\cl_dll</Filter>
     </ClCompile>
   </ItemGroup>
@@ -603,6 +618,33 @@
       <Filter>Header Files\cl_dll\particleman</Filter>
     </ClInclude>
     <ClInclude Include="..\..\cl_dll\fog.h">
+      <Filter>Header Files\cl_dll</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\RAUDIO\external\dr_flac.h">
+      <Filter>Source Files\raudio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\RAUDIO\external\dr_mp3.h">
+      <Filter>Source Files\raudio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\RAUDIO\external\dr_wav.h">
+      <Filter>Source Files\raudio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\RAUDIO\external\jar_mod.h">
+      <Filter>Source Files\raudio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\RAUDIO\external\jar_xm.h">
+      <Filter>Source Files\raudio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\RAUDIO\external\miniaudio.h">
+      <Filter>Source Files\raudio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\RAUDIO\external\qoa.h">
+      <Filter>Source Files\raudio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\RAUDIO\raudio.h">
+      <Filter>Source Files\raudio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\cl_dll\AudioManager.h">
       <Filter>Header Files\cl_dll</Filter>
     </ClInclude>
   </ItemGroup>

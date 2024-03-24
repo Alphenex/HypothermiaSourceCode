@@ -181,6 +181,9 @@ void PM_SortTextures()
 	}
 }
 
+#include "extdll.h"
+#include "util.h"
+
 void PM_InitTextureTypes()
 {
 	char buffer[512];
@@ -201,7 +204,10 @@ void PM_InitTextureTypes()
 	fileSize = pmove->COM_FileSize("sound/materials.txt");
 	pMemFile = pmove->COM_LoadFile("sound/materials.txt", 5, NULL);
 	if (!pMemFile)
+	{
+		ALERT(at_console, "Couldn't find the material file.. what the heck?!\n");
 		return;
+	}
 
 	filePos = 0;
 	// for each line in the file...
@@ -502,6 +508,25 @@ void PM_PlayStepSound(int step, float fvol)
 			break;
 		}
 		break;
+	case STEP_SNOW:
+		switch (irand)
+		{
+		// right foot
+		case 0:
+			pmove->PM_PlaySound(CHAN_BODY, "player/pl_snow1.wav", fvol, ATTN_NORM, 0, PITCH_NORM);
+			break;
+		case 1:
+			pmove->PM_PlaySound(CHAN_BODY, "player/pl_snow3.wav", fvol, ATTN_NORM, 0, PITCH_NORM);
+			break;
+		// left foot
+		case 2:
+			pmove->PM_PlaySound(CHAN_BODY, "player/pl_snow2.wav", fvol, ATTN_NORM, 0, PITCH_NORM);
+			break;
+		case 3:
+			pmove->PM_PlaySound(CHAN_BODY, "player/pl_snow4.wav", fvol, ATTN_NORM, 0, PITCH_NORM);
+			break;
+		}
+		break;
 	}
 }
 
@@ -509,7 +534,6 @@ int PM_MapTextureTypeStepType(char chTextureType)
 {
 	switch (chTextureType)
 	{
-	default:
 	case CHAR_TEX_CONCRETE:
 		return STEP_CONCRETE;
 	case CHAR_TEX_METAL:
@@ -524,6 +548,10 @@ int PM_MapTextureTypeStepType(char chTextureType)
 		return STEP_TILE;
 	case CHAR_TEX_SLOSH:
 		return STEP_SLOSH;
+	case CHAR_TEX_SNOW:
+		return STEP_SNOW;
+	default:
+		return STEP_CONCRETE;
 	}
 }
 
@@ -685,6 +713,12 @@ void PM_UpdateStepSound()
 				break;
 
 			case CHAR_TEX_SLOSH:
+				fvol = fWalking ? 0.2 : 0.5;
+				pmove->flTimeStepSound = fWalking ? 400 : 300;
+				break;
+
+			case CHAR_TEX_SNOW:
+				// TODO: Dunno what it does but it is probably the same as others.,
 				fvol = fWalking ? 0.2 : 0.5;
 				pmove->flTimeStepSound = fWalking ? 400 : 300;
 				break;
