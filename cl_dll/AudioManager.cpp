@@ -60,6 +60,11 @@ void HT::LoadAudio(const char* path, AUDIOTYPE type)
 {
 	if ((int)type < 0 || (int)type > 1 || path == "")
 		return;
+	
+	AudioData& audio = m_AudioStrMap[path];
+
+	if (audio.data) // it already exists.. DUH
+		return;
 
 	std::string modpath = "hypothermia/sound/" + std::string(path);
 	std::string valvepath = "valve/sound/" + std::string(path);
@@ -70,11 +75,6 @@ void HT::LoadAudio(const char* path, AUDIOTYPE type)
 	else if (fileExists(valvepath))
 		finalpath = valvepath.c_str();
 	else
-		return;
-	
-	AudioData& audio = m_AudioStrMap[path];
-
-	if (audio.data) // it already exists.. DUH
 		return;
 
 	if (type == AUDIOTYPE::SOUND)

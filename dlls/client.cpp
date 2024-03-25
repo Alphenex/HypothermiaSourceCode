@@ -25,7 +25,7 @@
 
 #include <algorithm>
 #include <string>
-#include <vector>
+#include <unordered_map>
 
 #include "extdll.h"
 #include "util.h"
@@ -48,6 +48,24 @@
 #include "pm_defs.h"
 #include "UserMessages.h"
 #include "effects.h"
+
+
+struct AudioPrecache
+{
+	char type;
+	const char* path;
+};
+
+static std::unordered_map<std::string, AudioPrecache> s_PrecacheAudios;
+
+void PrecacheAudio(const char* path, char type)
+{
+	if (path == "")
+		return;
+
+	if (s_PrecacheAudios[path].path == NULL || s_PrecacheAudios[path].path == "")
+		s_PrecacheAudios[path] = {type, path};
+}
 
 DLL_GLOBAL unsigned int g_ulFrameCount;
 
@@ -215,6 +233,15 @@ void ClientPutInServer(edict_t* pEntity)
 
 	pPlayer->pev->iuser1 = 0; // disable any spec modes
 	pPlayer->pev->iuser2 = 0;
+
+	for (const auto& kv : s_PrecacheAudios) // Tell client to load these sounds if possible.
+	{
+		MESSAGE_BEGIN(MSG_BROADCAST, gmsgAudio);
+		WRITE_BYTE((int)kv.second.type);
+		WRITE_COORD(-1.0f); // negative volume tells client to load the sound if can then stop sound
+		WRITE_STRING(kv.second.path);
+		MESSAGE_END();
+	}
 }
 
 #include "voice_gamemgr.h"

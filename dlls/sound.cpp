@@ -115,6 +115,8 @@ dynpitchvol_t rgdpvpreset[CDPVPRESETMAX] =
 		{26, 60, 60, 0, 0, 10, 1, 40, 70, 3, 80, 20, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 		{27, 128, 90, 10, 10, 10, 1, 20, 40, 1, 5, 10, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
 
+#include "client.h"
+
 class CAmbientGeneric : public CBaseEntity
 {
 public:
@@ -135,6 +137,7 @@ public:
 
 	bool m_fActive;	 // only true when the entity is playing a looping sound
 	bool m_fLooping; // true when the sound played will loop
+	AudioType m_AudioType;
 	bool m_bOneTimer;
 };
 
@@ -145,6 +148,8 @@ TYPEDESCRIPTION CAmbientGeneric::m_SaveData[] =
 		DEFINE_FIELD(CAmbientGeneric, m_fActive, FIELD_BOOLEAN),
 		DEFINE_FIELD(CAmbientGeneric, m_fLooping, FIELD_BOOLEAN),
 		DEFINE_FIELD(CAmbientGeneric, m_bOneTimer, FIELD_BOOLEAN),
+
+		DEFINE_FIELD(CAmbientGeneric, m_AudioType, FIELD_INTEGER),
 
 		// HACKHACK - This is not really in the spirit of the save/restore design, but save this
 		// out as a binary data block.  If the dynpitchvol_t is changed, old saved games will NOT
@@ -229,7 +234,11 @@ void CAmbientGeneric::Precache()
 	if (!FStringNull(pev->message) && strlen(szSoundFile) > 1)
 	{
 		if (*szSoundFile != '!')
-			PRECACHE_SOUND(szSoundFile);
+		{
+			if (m_flAttenuation == ATTN_NONE)
+				PrecacheAudio(szSoundFile, m_fLooping);
+			else PRECACHE_SOUND(szSoundFile);
+		}
 	}
 	// init all dynamic modulation parms
 	InitModulationParms();
@@ -242,7 +251,14 @@ void CAmbientGeneric::Precache()
 	}
 	if (m_fActive)
 	{
-		m_bOneTimer = true;
+		if (m_AudioType == AudioType::None)
+		{
+			UTIL_EmitAmbientSound(ENT(pev), pev->origin, szSoundFile, (m_dpv.vol * 0.01), m_flAttenuation, SND_SPAWNING, m_dpv.pitch, m_AudioType);
+		}
+		else
+		{
+			m_bOneTimer = true;
+		}
 		pev->nextthink = gpGlobals->time + 0.1;
 	}
 }
@@ -258,7 +274,7 @@ void CAmbientGeneric::RampThink()
 
 	if (m_bOneTimer)
 	{
-		UTIL_EmitAmbientSound(ENT(pev), pev->origin, szSoundFile, (m_dpv.vol * 0.01), m_flAttenuation, SND_SPAWNING, m_dpv.pitch, m_fLooping);
+		UTIL_EmitAmbientSound(ENT(pev), pev->origin, szSoundFile, (m_dpv.vol * 0.01), m_flAttenuation, SND_SPAWNING, m_dpv.pitch, m_AudioType);
 		m_bOneTimer = false;
 	}
 
@@ -298,7 +314,7 @@ void CAmbientGeneric::RampThink()
 
 			// shut sound off
 			UTIL_EmitAmbientSound(ENT(pev), pev->origin, szSoundFile,
-				0, 0, SND_STOP, 0, m_fLooping);
+				0, 0, SND_STOP, 0, m_AudioType);
 
 			// return without setting nextthink
 			return;
@@ -342,7 +358,7 @@ void CAmbientGeneric::RampThink()
 
 			// shut sound off
 			UTIL_EmitAmbientSound(ENT(pev), pev->origin, szSoundFile,
-				0, 0, SND_STOP, 0, m_fLooping);
+				0, 0, SND_STOP, 0, m_AudioType);
 
 			// return without setting nextthink
 			return;
@@ -448,7 +464,7 @@ void CAmbientGeneric::RampThink()
 			pitch = PITCH_NORM + 1; // don't send 'no pitch' !
 
 		UTIL_EmitAmbientSound(ENT(pev), pev->origin, szSoundFile,
-			(vol * 0.01), m_flAttenuation, flags, pitch, m_fLooping);
+			(vol * 0.01), m_flAttenuation, flags, pitch, m_AudioType);
 	}
 
 	// update ramps at 5hz
@@ -570,7 +586,7 @@ void CAmbientGeneric::ToggleUse(CBaseEntity* pActivator, CBaseEntity* pCaller, U
 		m_dpv.pitch = fraction * 255;
 
 		UTIL_EmitAmbientSound(ENT(pev), pev->origin, szSoundFile,
-			0, 0, SND_CHANGE_PITCH, m_dpv.pitch, m_fLooping);
+			0, 0, SND_CHANGE_PITCH, m_dpv.pitch, m_AudioType);
 
 		return;
 	}
@@ -625,7 +641,7 @@ void CAmbientGeneric::ToggleUse(CBaseEntity* pActivator, CBaseEntity* pCaller, U
 			}
 			else
 				UTIL_EmitAmbientSound(ENT(pev), pev->origin, szSoundFile,
-					0, 0, SND_STOP, 0, m_fLooping);
+					0, 0, SND_STOP, 0, m_AudioType);
 		}
 	}
 	else
@@ -641,14 +657,14 @@ void CAmbientGeneric::ToggleUse(CBaseEntity* pActivator, CBaseEntity* pCaller, U
 		else
 			// shut sound off now - may be interrupting a long non-looping sound
 			UTIL_EmitAmbientSound(ENT(pev), pev->origin, szSoundFile,
-				0, 0, SND_STOP, 0, m_fLooping);
+				0, 0, SND_STOP, 0, m_AudioType);
 
 		// init all ramp params for startup
 
 		InitModulationParms();
 
 		UTIL_EmitAmbientSound(ENT(pev), pev->origin, szSoundFile,
-			(m_dpv.vol * 0.01), m_flAttenuation, 0, m_dpv.pitch, m_fLooping);
+			(m_dpv.vol * 0.01), m_flAttenuation, 0, m_dpv.pitch, m_AudioType);
 
 		pev->nextthink = gpGlobals->time + 0.1;
 	}
@@ -829,6 +845,16 @@ bool CAmbientGeneric::KeyValue(KeyValueData* pkvd)
 			m_dpv.cspinup = 100;
 		if (m_dpv.cspinup < 0)
 			m_dpv.cspinup = 0;
+
+		return true;
+	}
+
+	else if (FStrEq(pkvd->szKeyName, "audiotype"))
+	{
+		m_AudioType = (AudioType)atoi(pkvd->szValue);
+
+		if ((int)m_AudioType < 0 || (int)m_AudioType > (int)AudioType::Music)
+			m_AudioType = AudioType::None;
 
 		return true;
 	}

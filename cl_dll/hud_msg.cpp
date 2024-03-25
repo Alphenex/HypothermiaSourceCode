@@ -147,11 +147,17 @@ bool CHud::MsgFunc_Audio(const char* pszName, int iSize, void* pbuf)
 {
 	BEGIN_READ(pbuf, iSize);
 
-	char type = READ_BYTE(); // Play Sound, Play Music, Stop Audio, Load Sound, Load Music
+	AUDIOTYPE type = (AUDIOTYPE)READ_BYTE();
 	float volume = READ_COORD();
 	const char* path = READ_STRING();
 
-	HT::PlayAudio(path, volume, (AUDIOTYPE)type);
+	if (volume < 0.0f)
+	{
+		HT::LoadAudio(path, type);
+		HT::StopAudio(path);
+	}
+	else
+		HT::PlayAudio(path, volume, type);
 
 	return true;
 }

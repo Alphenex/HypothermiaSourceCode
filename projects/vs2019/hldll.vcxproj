@@ -220,6 +220,7 @@ cmd /c ""$(ProjectDir)..\..\filecopy.bat" "$(SolutionDir)../../network" "" "delt
     <ClCompile Include="..\..\pm_shared\pm_math.cpp" />
     <ClCompile Include="..\..\pm_shared\pm_shared.cpp" />
     <ClCompile Include="..\..\public\interface.cpp" />
+    <ClCompile Include="MusicPlayer.cpp" />
     <ClCompile Include="PropDynamic.cpp" />
   </ItemGroup>
   <ItemGroup>

@@ -15,6 +15,8 @@
 
 #pragma once
 
+extern void PrecacheAudio(const char* path, char type);
+
 extern void respawn(entvars_t* pev, bool fCopyCorpse);
 extern qboolean ClientConnect(edict_t* pEntity, const char* pszName, const char* pszAddress, char szRejectReason[128]);
 extern void ClientDisconnect(edict_t* pEntity);

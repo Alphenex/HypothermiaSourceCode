@@ -644,16 +644,16 @@ void UTIL_MakeInvVectors(const Vector& vec, globalvars_t* pgv)
 
 #include <string>
 
-void UTIL_EmitAmbientSound(edict_t* entity, const Vector& vecOrigin, const char* samp, float vol, float attenuation, int fFlags, int pitch, bool loop)
+void UTIL_EmitAmbientSound(edict_t* entity, const Vector& vecOrigin, const char* samp, float vol, float attenuation, int fFlags, int pitch, AudioType type)
 {
 	float rgfl[3];
 	vecOrigin.CopyToArray(rgfl);
-
-	if (attenuation == ATTN_NONE)
+	
+	if (type > AudioType::None && type <= AudioType::Music)
 	{
 #ifndef CLIENT_DLL
 		MESSAGE_BEGIN(MSG_BROADCAST, gmsgAudio);
-		WRITE_BYTE((int)loop);
+		WRITE_BYTE((int)type - 1);
 		WRITE_COORD(vol);
 		WRITE_STRING(samp);
 		MESSAGE_END();
