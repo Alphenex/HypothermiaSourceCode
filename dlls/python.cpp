@@ -89,6 +89,8 @@ bool CPython::Deploy()
 		pev->body = 0;
 	}
 
+	pev->fuser4 = 0.004f;
+
 	return DefaultDeploy("models/v_357.mdl", "models/p_357.mdl", PYTHON_DRAW, "python", pev->body);
 }
 
@@ -172,7 +174,7 @@ void CPython::PrimaryAttack()
 
 	Vector vecDir;
 	Vector fovvec = Vector(pev->fov, pev->fov, pev->fov);
-	vecDir = m_pPlayer->FireBulletsPlayer(1, vecSrc, vecAiming, VECTOR_CONE_1DEGREES + fovvec, 8192, BULLET_PLAYER_357, 0, 0, m_pPlayer->pev, m_pPlayer->random_seed);
+	vecDir = m_pPlayer->FireBulletsPlayer(1, vecSrc, vecAiming, Vector(0.004f, 0.004f, 0.004f) + fovvec, 8192, BULLET_PLAYER_357, 0, 0, m_pPlayer->pev, m_pPlayer->random_seed);
 
 	int flags;
 #if defined(CLIENT_WEAPONS)
@@ -223,6 +225,7 @@ void CPython::WeaponIdle()
 	m_pPlayer->GetAutoaimVector(AUTOAIM_10DEGREES);
 
 	pev->fov -= 0.05f * gpGlobals->frametime;
+	pev->fov = std::clamp<float>(pev->fov, 0.0f, 0.075f);
 
 	if (m_flTimeWeaponIdle > UTIL_WeaponTimeBase())
 		return;

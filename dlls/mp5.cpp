@@ -91,6 +91,7 @@ bool CMP5::GetItemInfo(ItemInfo* p)
 
 bool CMP5::Deploy()
 {
+	pev->fuser4 = VECTOR_CONE_3DEGREES.x;
 	return DefaultDeploy("models/v_9mmAR.mdl", "models/p_9mmAR.mdl", MP5_DEPLOY, "mp5");
 }
 
@@ -237,6 +238,7 @@ void CMP5::WeaponIdle()
 	ResetEmptySound();
 
 	pev->fov -= 0.5f * gpGlobals->frametime;
+	pev->fov = std::clamp<float>(pev->fov, 0.0f, 0.80f);
 
 	m_pPlayer->GetAutoaimVector(AUTOAIM_5DEGREES);
 

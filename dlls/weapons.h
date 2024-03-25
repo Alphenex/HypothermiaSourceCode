@@ -579,7 +579,6 @@ public:
 private:
 	int m_iShell;
 
-
 	unsigned short m_usFireGlock1;
 	unsigned short m_usFireGlock2;
 };

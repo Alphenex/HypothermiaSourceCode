@@ -177,6 +177,8 @@ public:
 	float m_flWeaponDropTimer;
 
 	float m_tSneaking;
+	float m_flClientSpread;
+	float m_flClientWpncone;
 	int m_iUpdateTime;	  // stores the number of frame ticks before sending HUD update messages
 	int m_iClientHealth;  // the health currently known by the client.  If this changes, send a new
 	int m_iClientStamina;

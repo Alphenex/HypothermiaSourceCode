@@ -61,4 +61,6 @@ inline int gmsgStamina = 0;
 
 inline int gmsgAudio = 0;
 
+inline int gmsgCrosshair = 0;
+
 void LinkUserMessages();

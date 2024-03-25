@@ -74,4 +74,6 @@ void LinkUserMessages()
 	// coord: volume
 	// string: path
 	gmsgAudio = REG_USER_MSG("Audio", -1);
+
+	gmsgCrosshair = REG_USER_MSG("Crosshair", 8);
 }

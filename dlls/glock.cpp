@@ -76,18 +76,19 @@ bool CGlock::GetItemInfo(ItemInfo* p)
 bool CGlock::Deploy()
 {
 	// pev->body = 1;
+	pev->fuser4 = 0.015f; // Primary attack one
 	return DefaultDeploy("models/v_9mmhandgun.mdl", "models/p_9mmhandgun.mdl", GLOCK_DRAW, "onehanded");
 }
 
 void CGlock::PrimaryAttack()
 {
 	pev->fov += gpGlobals->frametime;
-	GlockFire(0.01, 0.25f, true);
+	GlockFire(0.015f, 0.25f, true);
 }
 
 void CGlock::SecondaryAttack()
 {
-	GlockFire(0.1f, 0.1f, false);
+	GlockFire(0.05f, 0.1f, false);
 }
 
 void CGlock::GlockFire(float flSpread, float flCycleTime, bool fUseAutoAim)
@@ -150,6 +151,8 @@ void CGlock::GlockFire(float flSpread, float flCycleTime, bool fUseAutoAim)
 		vecAiming = gpGlobals->v_forward;
 	}
 
+	pev->fuser4 = flSpread;
+
 	Vector fovvec = Vector(pev->fov, pev->fov, pev->fov);
 	Vector vecDir;
 	vecDir = m_pPlayer->FireBulletsPlayer(1, vecSrc, vecAiming, Vector(flSpread, flSpread, flSpread) + fovvec, 8192, BULLET_PLAYER_9MM, 0, 0, m_pPlayer->pev, m_pPlayer->random_seed);
@@ -196,6 +199,7 @@ void CGlock::WeaponIdle()
 	m_pPlayer->GetAutoaimVector(AUTOAIM_10DEGREES);
 
 	pev->fov -= 0.175f * gpGlobals->frametime;
+	pev->fov = std::clamp<float>(pev->fov, 0.0f, 0.8f);
 
 	if (m_flTimeWeaponIdle > UTIL_WeaponTimeBase())
 		return;

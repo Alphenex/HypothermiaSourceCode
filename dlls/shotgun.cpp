@@ -87,6 +87,10 @@ bool CShotgun::GetItemInfo(ItemInfo* p)
 
 bool CShotgun::Deploy()
 {
+	Vector damn = VECTOR_CONE_10DEGREES + VECTOR_CONE_10DEGREES * 0.25f;
+
+	pev->fuser4 = damn.x;
+
 	return DefaultDeploy("models/v_shotgun.mdl", "models/p_shotgun.mdl", SHOTGUN_DRAW, "shotgun");
 }
 
@@ -138,8 +142,11 @@ void CShotgun::PrimaryAttack()
 	}
 	else
 	{
+		Vector damn = VECTOR_CONE_10DEGREES + VECTOR_CONE_10DEGREES * 0.25f;
+
 		// regular old, untouched spread.
 		vecDir = m_pPlayer->FireBulletsPlayer(6, vecSrc, vecAiming, VECTOR_CONE_10DEGREES + VECTOR_CONE_10DEGREES * 0.25f, 2048, BULLET_PLAYER_BUCKSHOT, 0, 0, m_pPlayer->pev, m_pPlayer->random_seed);
+		pev->fuser4 = damn.x;
 	}
 
 	PLAYBACK_EVENT_FULL(flags, m_pPlayer->edict(), m_usSingleFire, 0.0, g_vecZero, g_vecZero, vecDir.x, vecDir.y, 0, 0, 0, 0);
@@ -214,7 +221,9 @@ void CShotgun::SecondaryAttack()
 	else
 	{
 		// untouched default single player
-		vecDir = m_pPlayer->FireBulletsPlayer(12, vecSrc, vecAiming, VECTOR_CONE_10DEGREES + VECTOR_CONE_10DEGREES * 0.33f, 2048, BULLET_PLAYER_BUCKSHOT, 0, 0, m_pPlayer->pev, m_pPlayer->random_seed);
+		Vector damn = VECTOR_CONE_10DEGREES + VECTOR_CONE_10DEGREES * 0.33f;
+		vecDir = m_pPlayer->FireBulletsPlayer(12, vecSrc, vecAiming, damn, 2048, BULLET_PLAYER_BUCKSHOT, 0, 0, m_pPlayer->pev, m_pPlayer->random_seed);
+		pev->fuser4 = damn.x;
 	}
 
 	PLAYBACK_EVENT_FULL(flags, m_pPlayer->edict(), m_usDoubleFire, 0.0, g_vecZero, g_vecZero, vecDir.x, vecDir.y, 0, 0, 0, 0);

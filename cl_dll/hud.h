@@ -391,6 +391,23 @@ public:
 //
 //-----------------------------------------------------
 //
+
+class CHudCrosshair : public CHudBase
+{
+public:
+	bool Init() override;
+	bool VidInit() override;
+	bool Draw(float flTime) override;
+	void Reset() override;
+	bool MsgFunc_Crosshair(const char* pszName, int iSize, void* pbuf);
+
+	float m_flSpread; // Our spread value,
+	float m_flWeaponcone; // if no weapon cone then we'll basically have no crosshair.
+};
+
+//
+//-----------------------------------------------------
+//
 const int maxHUDMessages = 16;
 struct message_parms_t
 {
@@ -593,6 +610,7 @@ public:
 	CHudTextMessage m_TextMessage;
 	CHudStatusIcons m_StatusIcons;
 	CHudStamina m_Stamina;
+	CHudCrosshair m_Crosshair;
 
 	void Init();
 	void VidInit();

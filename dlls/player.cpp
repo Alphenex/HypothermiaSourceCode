@@ -827,6 +827,13 @@ void CBasePlayer::Killed(entvars_t* pevAttacker, int iGib)
 	WRITE_SHORT(m_iClientStamina);
 	MESSAGE_END();
 
+	m_flClientSpread = 0.0f;
+	m_flClientWpncone = 0.0f;
+	MESSAGE_BEGIN(MSG_ONE, gmsgCrosshair, NULL, pev);
+	WRITE_FLOAT(m_flClientSpread);
+	WRITE_FLOAT(m_flClientWpncone);
+	MESSAGE_END();
+
 	// Tell Ammo Hud that the player is dead
 	MESSAGE_BEGIN(MSG_ONE, gmsgCurWeapon, NULL, pev);
 	WRITE_BYTE(0);
@@ -4111,6 +4118,25 @@ void CBasePlayer::UpdateClientData()
 	}
 
 
+	CBasePlayerItem* item = m_pActiveItem;
+
+	if (item)
+	{
+		float weaponspread = roundf(item->pev->fov * 100) / 100;
+		float clientspread = roundf(m_flClientSpread * 100) / 100;
+
+		if (weaponspread != clientspread || item->pev->fuser4 != m_flClientWpncone)
+		{
+			MESSAGE_BEGIN(MSG_ONE, gmsgCrosshair, NULL, pev);
+			WRITE_FLOAT(item->pev->fov);
+			WRITE_FLOAT(item->pev->fuser4);
+			MESSAGE_END();
+
+			m_flClientSpread = item->pev->fov;
+			m_flClientWpncone = item->pev->fuser4;
+		}
+	}
+	
 	if (pev->armorvalue != m_iClientBattery)
 	{
 		m_iClientBattery = pev->armorvalue;

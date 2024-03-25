@@ -7,7 +7,6 @@
 #include "keydefs.h"
 #include "math.h"
 
-cvar_t* stamalpha;
 cvar_t* stamhide;
 
 DECLARE_MESSAGE(m_Stamina, Stamina)
@@ -32,8 +31,7 @@ bool CHudStamina::Init()
 
 	gHUD.AddHudElem(this);
 
-	stamalpha = gEngfuncs.pfnRegisterVariable("cl_staminafade", "1", 0);
-	stamhide = gEngfuncs.pfnRegisterVariable("cl_staminahide", "1", 0);
+	stamhide = CVAR_CREATE("cl_staminahide", "0", 0);
 
 	return true;
 }
@@ -54,6 +52,10 @@ bool CHudStamina::Draw(float flTime)
 {
 	int r, g, b, x, y;
 	int a = MIN_ALPHA;
+
+	if (CVAR_GET_FLOAT("cl_staminahide") == 1)
+		return true;
+
 	bool pressingshift = (gHUD.m_iKeyBits & (IN_SCORE)) != 0;
 	bool moving = (gHUD.m_iKeyBits & (IN_FORWARD | IN_BACK | IN_MOVELEFT | IN_MOVERIGHT)) != 0;
 
