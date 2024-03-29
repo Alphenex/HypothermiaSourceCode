@@ -738,10 +738,10 @@ void CScientist::TalkInit()
 	{
 	default:
 	case HEAD_GLASSES:
-		m_voicePitch = 105;
+		m_voicePitch = 110;
 		break; //glasses
 	case HEAD_EINSTEIN:
-		m_voicePitch = 100;
+		m_voicePitch = 90;
 		break; //einstein
 	case HEAD_LUTHER:
 		m_voicePitch = 95;

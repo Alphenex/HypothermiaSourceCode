@@ -15,6 +15,11 @@
 
 #pragma once
 
+#include <unordered_map>
+#include <vector>
+
+extern std::unordered_map<int, std::vector<edict_t*>> g_FactionTracker; // Keeps track of all factions
+
 //
 // generic Monster
 //
@@ -97,6 +102,9 @@ public:
 
 	float m_flDistTooFar; // if enemy farther away than this, bits_COND_ENEMY_TOOFAR set in CheckEnemy
 	float m_flDistLook;	  // distance monster sees (Default 2048)
+
+	unsigned int m_uiFactionID; // Each monster has an faction, 0th faction means that it has no factions @Alphenex53
+								// Monsters will not fight any member of his own factions but will fight other factions.
 
 	int m_iTriggerCondition;	 // for scripted AI, this is the condition that will cause the activation of the monster's TriggerTarget
 	string_t m_iszTriggerTarget; // name of target that should be fired.
@@ -362,7 +370,7 @@ public:
 
 	bool ExitScriptedSequence();
 	bool CineCleanup();
-
+	
 	/**
 	*	@brief Drop an item.
 	*	Will return @c nullptr if item dropping is disabled for this NPC.

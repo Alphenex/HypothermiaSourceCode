@@ -194,12 +194,12 @@ void CGlock::Reload()
 
 void CGlock::WeaponIdle()
 {
+	pev->fov -= 0.175f * gpGlobals->frametime;
+	pev->fov = std::clamp<float>(pev->fov, 0.0f, 0.8f);
+
 	ResetEmptySound();
 
 	m_pPlayer->GetAutoaimVector(AUTOAIM_10DEGREES);
-
-	pev->fov -= 0.175f * gpGlobals->frametime;
-	pev->fov = std::clamp<float>(pev->fov, 0.0f, 0.8f);
 
 	if (m_flTimeWeaponIdle > UTIL_WeaponTimeBase())
 		return;

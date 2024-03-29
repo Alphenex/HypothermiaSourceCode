@@ -300,6 +300,10 @@ Vector CBasePlayer::GetGunPosition()
 //=========================================================
 // TraceAttack
 //=========================================================
+static const char* sBannedWeapons[] = {
+	"weapon_egon",	 // Flamethrower doesn't drop either
+	"weapon_crowbar" // Melee don't drop
+};
 void CBasePlayer::TraceAttack(entvars_t* pevAttacker, float flDamage, Vector vecDir, TraceResult* ptr, int bitsDamageType)
 {
 	bool IsGodModeEnabled = (pev->flags & FL_GODMODE) != 0;
@@ -327,10 +331,18 @@ void CBasePlayer::TraceAttack(entvars_t* pevAttacker, float flDamage, Vector vec
 		case HITGROUP_LEFTARM:
 		case HITGROUP_RIGHTARM:
 			flDamage *= gSkillData.plrArm;
-			
-			if (IsBulletDMG && DropWeaponRNG < 20 && gpGlobals->time > m_flWeaponDropTimer) // Half the time
+
+			if (IsBulletDMG && DropWeaponRNG < 10 && gpGlobals->time > m_flWeaponDropTimer)
 			{
-				DropPlayerItem(""); // We maybe don't need to give input as no input equals current weapon
+				[=]() -> void 
+				{
+					for (unsigned int i = 0; i < 2; i++)
+						if (FStrEq(m_pActiveItem->pszName(), sBannedWeapons[i]))
+							return;
+				
+					DropPlayerItem("");
+				};
+
 				m_flWeaponDropTimer = gpGlobals->time + 5.0f;
 			}
 
@@ -1771,20 +1783,6 @@ void CBasePlayer::UpdateStatusBar()
 	}
 }
 
-
-
-
-
-
-
-
-
-#define CLIMB_SHAKE_FREQUENCY 22 // how many frames in between screen shakes when climbing
-#define MAX_CLIMB_SPEED 75		 // fastest vertical climbing speed possible
-#define CLIMB_SPEED_DEC 15		 // climbing deceleration rate
-#define CLIMB_PUNCH_X -7		 // how far to 'punch' client X axis when climbing
-#define CLIMB_PUNCH_Z 7			 // how far to 'punch' client Z axis when climbing
-
 void CBasePlayer::PreThink()
 {
 	int buttonsChanged = (m_afButtonLast ^ pev->button); // These buttons have changed this frame
@@ -1823,7 +1821,7 @@ void CBasePlayer::PreThink()
 	{
 		if (gpGlobals->time > m_flStaminaTimer)
 		{
-			EMIT_SOUND_DYN2(edict(), CHAN_VOICE, "player/breathe3.wav", 10.0f, ATTN_NORM, 0, PITCH_NORM);
+			UTIL_EmitAmbientSound(edict(), pev->origin, "player/breathe3.wav", 1.0f, ATTN_NORM, 0, PITCH_NORM, AudioType::Sound);
 			m_flStaminaTimer = gpGlobals->time + 3.5f;
 		}
 
@@ -2940,6 +2938,8 @@ void CBasePlayer::Spawn()
 	m_lastx = m_lasty = 0;
 
 	m_flNextChatTime = gpGlobals->time;
+
+	m_uiFactionID = -1; // -1 reserved for player ally faction
 
 	g_pGameRules->PlayerSpawn(this);
 

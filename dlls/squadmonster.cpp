@@ -323,6 +323,7 @@ int CSquadMonster::SquadRecruit(int searchRadius, int maxMembers)
 
 	CBaseEntity* pEntity = NULL;
 
+	int relationship = 0;
 	if (!FStringNull(pev->netname))
 	{
 		// I have a netname, so unconditionally recruit everyone else with that name.
@@ -330,10 +331,11 @@ int CSquadMonster::SquadRecruit(int searchRadius, int maxMembers)
 		while (pEntity)
 		{
 			CSquadMonster* pRecruit = pEntity->MySquadMonsterPointer();
+			relationship = IRelationship(pRecruit);
 
 			if (pRecruit)
 			{
-				if (!pRecruit->InSquad() && pRecruit->Classify() == iMyClass && pRecruit != this)
+				if (!pRecruit->InSquad() && pRecruit->Classify() == iMyClass && pRecruit != this && (relationship == R_AL || relationship == R_NO))
 				{
 					// minimum protection here against user error.in worldcraft.
 					if (!SquadAdd(pRecruit))
@@ -350,13 +352,15 @@ int CSquadMonster::SquadRecruit(int searchRadius, int maxMembers)
 		while ((pEntity = UTIL_FindEntityInSphere(pEntity, pev->origin, searchRadius)) != NULL)
 		{
 			CSquadMonster* pRecruit = pEntity->MySquadMonsterPointer();
+			relationship = IRelationship(pRecruit);
 
 			if (pRecruit && pRecruit != this && pRecruit->IsAlive() && !pRecruit->m_pCine)
 			{
 				// Can we recruit this guy?
 				if (!pRecruit->InSquad() && pRecruit->Classify() == iMyClass &&
 					((iMyClass != CLASS_ALIEN_MONSTER) || FStrEq(STRING(pev->classname), STRING(pRecruit->pev->classname))) &&
-					FStringNull(pRecruit->pev->netname))
+						FStringNull(pRecruit->pev->netname) && (relationship == R_AL ||
+					relationship == R_NO))
 				{
 					TraceResult tr;
 					UTIL_TraceLine(pev->origin + pev->view_ofs, pRecruit->pev->origin + pev->view_ofs, ignore_monsters, pRecruit->edict(), &tr); // try to hit recruit with a traceline.
@@ -364,7 +368,6 @@ int CSquadMonster::SquadRecruit(int searchRadius, int maxMembers)
 					{
 						if (!SquadAdd(pRecruit))
 							break;
-
 						squadCount++;
 					}
 				}
@@ -508,7 +511,7 @@ bool CSquadMonster::NoFriendlyFire()
 		}
 	}
 
-	return true;
+	return CBaseMonster::NoFriendlyFire();
 }
 
 //=========================================================

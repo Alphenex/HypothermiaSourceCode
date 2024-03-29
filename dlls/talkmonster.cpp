@@ -817,10 +817,10 @@ CBaseEntity* CTalkMonster::FindNearestFriend(bool fPlayer)
 			CBaseMonster* pMonster = pFriend->MyMonsterPointer();
 
 			// If not a monster for some reason, or in a script, or prone
-			if (!pMonster || pMonster->m_MonsterState == MONSTERSTATE_SCRIPT || pMonster->m_MonsterState == MONSTERSTATE_PRONE)
+			if (!pMonster || pMonster->m_MonsterState == MONSTERSTATE_SCRIPT || pMonster->m_MonsterState == MONSTERSTATE_PRONE || pMonster->m_uiFactionID != m_uiFactionID)
 				continue;
 
-			vecCheck = pFriend->pev->origin;
+			vecCheck = pFriend->pev->origin;	
 			vecCheck.z = pFriend->pev->absmax.z;
 
 			// if closer than previous friend, and in range, see if he's visible

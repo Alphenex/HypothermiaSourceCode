@@ -34,8 +34,9 @@
 #include "soundent.h"
 #include "gamerules.h"
 
-#define MONSTER_CUT_CORNER_DIST 8 // 8 means the monster's bounding box is contained without the box of the node in WC
+std::unordered_map<int, std::vector<edict_t*>> g_FactionTracker; // Keeps track of all factions
 
+#define MONSTER_CUT_CORNER_DIST 8 // 8 means the monster's bounding box is contained without the box of the node in WC
 
 Vector VecBModelOrigin(entvars_t* pevBModel);
 
@@ -101,6 +102,8 @@ TYPEDESCRIPTION CBaseMonster::m_SaveData[] =
 		DEFINE_FIELD(CBaseMonster, m_scriptState, FIELD_INTEGER),
 		DEFINE_FIELD(CBaseMonster, m_pCine, FIELD_CLASSPTR),
 		DEFINE_FIELD(CBaseMonster, m_AllowItemDropping, FIELD_BOOLEAN),
+
+		DEFINE_FIELD(CBaseMonster, m_uiFactionID, FIELD_INTEGER)
 };
 
 //IMPLEMENT_SAVERESTORE( CBaseMonster, CBaseToggle );
@@ -2040,6 +2043,9 @@ void CBaseMonster::MonsterInit()
 
 	m_hEnemy = NULL;
 
+	if (m_uiFactionID != 0)
+		g_FactionTracker[m_uiFactionID].push_back(edict());
+
 	// set eye position
 	SetEyePosition();
 
@@ -2197,6 +2203,8 @@ bool CBaseMonster::TaskIsRunning()
 //=========================================================
 int CBaseMonster::IRelationship(CBaseEntity* pTarget)
 {
+	CBaseMonster* targetmon = (CBaseMonster*)pTarget;
+
 	static int iEnemy[14][14] =
 		{//   NONE	 MACH	 PLYR	 HPASS	 HMIL	 AMIL	 APASS	 AMONST	APREY	 APRED	 INSECT	PLRALY	PBWPN	ABWPN
 			/*NONE*/ {R_NO, R_NO, R_NO, R_NO, R_NO, R_NO, R_NO, R_NO, R_NO, R_NO, R_NO, R_NO, R_NO, R_NO},
@@ -2214,7 +2222,38 @@ int CBaseMonster::IRelationship(CBaseEntity* pTarget)
 			/*PBIOWEAPON*/ {R_NO, R_NO, R_DL, R_DL, R_DL, R_DL, R_DL, R_DL, R_DL, R_DL, R_NO, R_DL, R_NO, R_DL},
 			/*ABIOWEAPON*/ {R_NO, R_NO, R_DL, R_DL, R_DL, R_AL, R_NO, R_DL, R_DL, R_NO, R_NO, R_DL, R_DL, R_NO}};
 
-	return iEnemy[Classify()][pTarget->Classify()];
+	static int iFaction[14] = {
+		/*NONE*/		R_NO,
+		/*MACHINE*/		R_HT,
+		/*PLAYER*/		R_NO,
+		/*HUMANPASSIVE*/R_NO,
+		/*HUMANMILITAR*/R_HT,
+		/*ALIENMILITAR*/R_HT,
+		/*ALIENPASSIVE*/R_NO,
+		/*ALIENMONSTER*/R_NM,
+		/*ALIENPREY   */R_FR,
+		/*ALIENPREDATO*/R_DL,
+		/*INSECT*/		R_NO,
+		/*PLAYERALLY*/	R_NO, // I mean.. if you are a player ally then you should ignore other player allies if you have diff faction.
+		/*PBIOWEAPON*/	R_NO,
+		/*ABIOWEAPON*/	R_NO
+	};
+
+	int MyClass = Classify();
+	int TargetClass = pTarget->Classify();
+
+	int rel = iEnemy[MyClass][TargetClass];
+
+	if (targetmon->m_uiFactionID != 0)
+	{
+		//if (m_uiFactionID == -1 && targetmon->IsPlayer())
+		//	return R_AL;
+
+		if (m_uiFactionID != targetmon->m_uiFactionID) return iFaction[Classify()];
+		else return R_AL;
+	}
+
+	return rel;
 }
 
 //=========================================================
@@ -2986,6 +3025,11 @@ bool CBaseMonster::KeyValue(KeyValueData* pkvd)
 		m_iTriggerCondition = atoi(pkvd->szValue);
 		return true;
 	}
+	else if (FStrEq(pkvd->szKeyName, "factionID"))
+	{
+		m_uiFactionID = atoi(pkvd->szValue);
+		return true;
+	}
 	else if (FStrEq(pkvd->szKeyName, "allow_item_dropping"))
 	{
 		m_AllowItemDropping = atoi(pkvd->szValue) != 0;
@@ -3093,6 +3137,53 @@ bool CBaseMonster::FCheckAITrigger()
 	}
 
 	return false;
+}
+
+#include "plane.h"
+
+bool CBaseMonster::NoFriendlyFire()
+{
+	if (m_uiFactionID == 0)
+		return true;
+
+	CPlane backPlane;
+	CPlane leftPlane;
+	CPlane rightPlane;
+
+	Vector vecLeftSide;
+	Vector vecRightSide;
+	Vector v_left;
+
+	if (m_hEnemy != NULL)
+		UTIL_MakeVectors(UTIL_VecToAngles(m_hEnemy->Center() - pev->origin));
+	else
+		return false;
+
+	vecLeftSide = pev->origin - (gpGlobals->v_right * (pev->size.x * 1.5));
+	vecRightSide = pev->origin + (gpGlobals->v_right * (pev->size.x * 1.5));
+	v_left = gpGlobals->v_right * -1;
+
+	leftPlane.InitializePlane(gpGlobals->v_right, vecLeftSide);
+	rightPlane.InitializePlane(v_left, vecRightSide);
+	backPlane.InitializePlane(gpGlobals->v_forward, pev->origin);
+
+	std::vector<edict_t*>& facvec = g_FactionTracker[m_uiFactionID];
+	for (edict_t* pMemberEdict : facvec)
+	{
+		CBaseMonster* pMember = (CBaseMonster*)pMemberEdict->pvPrivateData;
+		if (pMember && pMemberEdict && pMember != this)
+		{
+			if (backPlane.PointInFront(pMember->pev->origin) &&
+				leftPlane.PointInFront(pMember->pev->origin) &&
+				rightPlane.PointInFront(pMember->pev->origin))
+			{
+				// this guy is in the check volume! Don't shoot!
+				return false;
+			}
+		}
+	}
+
+	return true;
 }
 
 //=========================================================
@@ -3301,6 +3392,11 @@ void CBaseMonster::MonsterInitDead()
 
 	UTIL_SetSize(pev, g_vecZero, g_vecZero);
 	UTIL_SetOrigin(pev, pev->origin);
+
+	std::vector<edict_t*>& facvec = g_FactionTracker[m_uiFactionID];
+	auto it = std::find(facvec.begin(), facvec.end(), edict());
+	if (it != facvec.end())
+		facvec.erase(it);
 
 	// Setup health counters, etc.
 	BecomeDead();

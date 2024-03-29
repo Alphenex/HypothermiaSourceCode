@@ -9,6 +9,13 @@ public:
 	bool KeyValue(KeyValueData* pkvd) override;
 
 	void Think() override;
+	void Touch(CBaseEntity* pOther) override;
+
+	void SetObjectCollisionBox(void)
+	{
+		pev->absmin = pev->origin + Vector(-500, -500, -500);
+		pev->absmax = pev->origin + Vector(500, 500, 500);
+	}
 
 	bool Save(CSave& save) override;
 	bool Restore(CRestore& restore) override;
@@ -46,8 +53,8 @@ void CPropDynamic::Spawn()
 	SetBodygroup(0, m_iBody1);
 	SetBodygroup(1, m_iBody2);
 
-	pev->solid = SOLID_NOT;
-	pev->movetype = MOVETYPE_NOCLIP;
+	pev->solid = SOLID_BBOX;
+	pev->movetype = MOVETYPE_FLY;
 
 	pev->nextthink = gpGlobals->time;
 }
@@ -70,4 +77,9 @@ bool CPropDynamic::KeyValue(KeyValueData* pkvd)
 
 void CPropDynamic::Think()
 {
+}
+
+void CPropDynamic::Touch(CBaseEntity* pOther)
+{
+
 }

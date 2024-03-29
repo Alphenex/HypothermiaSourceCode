@@ -590,6 +590,11 @@ void CBaseMonster::Killed(entvars_t* pevAttacker, int iGib)
 	unsigned int cCount = 0;
 	bool fDone = false;
 
+	std::vector<edict_t*>& facvec = g_FactionTracker[m_uiFactionID];
+	auto it = std::find(facvec.begin(), facvec.end(), edict());
+	if (it != facvec.end())
+		facvec.erase(it);
+
 	if (HasMemory(bits_MEMORY_KILLED))
 	{
 		if (ShouldGibMonster(iGib))
