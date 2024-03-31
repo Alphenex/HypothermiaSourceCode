@@ -204,6 +204,17 @@ bool CBaseMonster::FScheduleValid()
 //=========================================================
 void CBaseMonster::MaintainSchedule()
 {
+	// This aint the right place to put this but I don't trust people so it is here @Alphenex53
+	std::vector<edict_t*>& facvec = g_FactionTracker[m_uiFactionID];
+	for (edict_t* pMemberEdict : facvec)
+	{
+		CBaseMonster* pMember = (CBaseMonster*)pMemberEdict->pvPrivateData;
+		if (pMember && pMemberEdict && pMember != this && (m_afMemory & bits_MEMORY_PROVOKED) != 0)
+		{
+			pMember->Remember(bits_MEMORY_PROVOKED);
+		}
+	}
+
 	Schedule_t* pNewSchedule;
 	int i;
 

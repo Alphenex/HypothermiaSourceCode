@@ -34,6 +34,8 @@
 
 #define ZOMBIE_FLINCH_DELAY 2 // at most one flinch every n secs
 
+#define ZOMBIE_TYPES 3 // we have three zombie types
+
 class CZombie : public CBaseMonster
 {
 public:
@@ -43,6 +45,8 @@ public:
 	int Classify() override;
 	void HandleAnimEvent(MonsterEvent_t* pEvent) override;
 	int IgnoreConditions() override;
+
+	bool KeyValue(KeyValueData* pkvd) override;
 
 	float m_flNextFlinch;
 
@@ -57,6 +61,10 @@ public:
 	static const char* pPainSounds[];
 	static const char* pAttackHitSounds[];
 	static const char* pAttackMissSounds[];
+
+	static float fZombieHealth[ZOMBIE_TYPES];
+	static float fZombieDamage[ZOMBIE_TYPES];
+	static float fZombieFlinchDelay[ZOMBIE_TYPES];
 
 	// No range attacks
 	bool CheckRangeAttack1(float flDot, float flDist) override { return false; }
@@ -105,6 +113,10 @@ const char* CZombie::pPainSounds[] =
 		"zombie/zo_pain1.wav",
 		"zombie/zo_pain2.wav",
 };
+
+float CZombie::fZombieHealth[ZOMBIE_TYPES] = { 1.0f, 1.25f, 1.5f};
+float CZombie::fZombieDamage[ZOMBIE_TYPES] = { 1.0f, 1.0f, 1.5f};
+float CZombie::fZombieFlinchDelay[ZOMBIE_TYPES] = { 1.0f, 0.75f, 0.5f };
 
 //=========================================================
 // Classify - indicates this monster's place in the
@@ -196,7 +208,7 @@ void CZombie::HandleAnimEvent(MonsterEvent_t* pEvent)
 	{
 		// do stuff for this event.
 		//		ALERT( at_console, "Slash right!\n" );
-		CBaseEntity* pHurt = CheckTraceHullAttack(70, gSkillData.zombieDmgOneSlash, DMG_SLASH);
+		CBaseEntity* pHurt = CheckTraceHullAttack(70, gSkillData.zombieDmgOneSlash * fZombieDamage[pev->iuser4], DMG_SLASH);
 		if (pHurt)
 		{
 			if ((pHurt->pev->flags & (FL_MONSTER | FL_CLIENT)) != 0)
@@ -220,7 +232,7 @@ void CZombie::HandleAnimEvent(MonsterEvent_t* pEvent)
 	{
 		// do stuff for this event.
 		//		ALERT( at_console, "Slash left!\n" );
-		CBaseEntity* pHurt = CheckTraceHullAttack(70, gSkillData.zombieDmgOneSlash, DMG_SLASH);
+		CBaseEntity* pHurt = CheckTraceHullAttack(70, gSkillData.zombieDmgOneSlash * fZombieDamage[pev->iuser4], DMG_SLASH);
 		if (pHurt)
 		{
 			if ((pHurt->pev->flags & (FL_MONSTER | FL_CLIENT)) != 0)
@@ -242,7 +254,7 @@ void CZombie::HandleAnimEvent(MonsterEvent_t* pEvent)
 	case ZOMBIE_AE_ATTACK_BOTH:
 	{
 		// do stuff for this event.
-		CBaseEntity* pHurt = CheckTraceHullAttack(70, gSkillData.zombieDmgBothSlash, DMG_SLASH);
+		CBaseEntity* pHurt = CheckTraceHullAttack(70, gSkillData.zombieDmgBothSlash * fZombieDamage[pev->iuser4], DMG_SLASH);
 		if (pHurt)
 		{
 			if ((pHurt->pev->flags & (FL_MONSTER | FL_CLIENT)) != 0)
@@ -273,17 +285,24 @@ void CZombie::Spawn()
 {
 	Precache();
 
-	SET_MODEL(ENT(pev), "models/zombie.mdl");
+	if (pev->model == NULL)
+	{
+		pev->model = MAKE_STRING("models/zombie.mdl");		
+	}
+
+	PRECACHE_MODEL(STRING(pev->model));
+	SET_MODEL(ENT(pev), STRING(pev->model));
 	UTIL_SetSize(pev, VEC_HUMAN_HULL_MIN, VEC_HUMAN_HULL_MAX);
 
 	pev->solid = SOLID_SLIDEBOX;
 	pev->movetype = MOVETYPE_STEP;
-	m_bloodColor = BLOOD_COLOR_GREEN;
-	pev->health = gSkillData.zombieHealth;
+	m_bloodColor = BLOOD_COLOR_YELLOW;
+	pev->health = gSkillData.zombieHealth * fZombieHealth[pev->iuser4];
 	pev->view_ofs = VEC_VIEW; // position of the eyes relative to monster's origin.
 	m_flFieldOfView = 0.5;	  // indicates the width of this monster's forward view cone ( as a dotproduct result )
 	m_MonsterState = MONSTERSTATE_NONE;
 	m_afCapability = bits_CAP_DOORS_GROUP;
+
 
 	MonsterInit();
 }
@@ -293,8 +312,6 @@ void CZombie::Spawn()
 //=========================================================
 void CZombie::Precache()
 {
-	PRECACHE_MODEL("models/zombie.mdl");
-
 	PRECACHE_SOUND_ARRAY(pAttackHitSounds);
 	PRECACHE_SOUND_ARRAY(pAttackMissSounds);
 	PRECACHE_SOUND_ARRAY(pAttackSounds);
@@ -327,8 +344,28 @@ int CZombie::IgnoreConditions()
 	if ((m_Activity == ACT_SMALL_FLINCH) || (m_Activity == ACT_BIG_FLINCH))
 	{
 		if (m_flNextFlinch < gpGlobals->time)
-			m_flNextFlinch = gpGlobals->time + ZOMBIE_FLINCH_DELAY;
+			m_flNextFlinch = gpGlobals->time + ZOMBIE_FLINCH_DELAY * fZombieFlinchDelay[pev->iuser4];
 	}
 
 	return iIgnore;
+}
+
+bool CZombie::KeyValue(KeyValueData* pkvd)
+{
+	if (FStrEq(pkvd->szKeyName, "zombieType"))
+	{
+		pev->iuser4 = atoi(pkvd->szValue);
+
+		int type = pev->iuser4;
+		if (type == 0)
+			pev->model = MAKE_STRING("models/zombie.mdl");
+		else if (type == 1)
+			pev->model = MAKE_STRING("models/zombie_barney.mdl");
+		else if (type == 2)
+			pev->model = MAKE_STRING("models/zombie_soldier.mdl");
+
+		return true;
+	}
+
+	return CBaseMonster::KeyValue(pkvd);
 }

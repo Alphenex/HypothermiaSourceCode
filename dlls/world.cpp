@@ -84,6 +84,12 @@ DLL_DECALLIST gDecals[] = {
 	{"{smscorch3", 0}, // DECAL_SMALLSCORCH3,	// Small scorch mark
 	{"{mommablob", 0}, // DECAL_MOMMABIRTH		// BM Birth spray
 	{"{mommablob", 0}, // DECAL_MOMMASPLAT		// BM Mortar spray?? need decal
+	{"{bblood1", 0},   // DECAL_bBLOOD1
+	{"{bblood2", 0},   // DECAL_bBLOOD2
+	{"{bblood3", 0},   // DECAL_bBLOOD3
+	{"{bblood4", 0},   // DECAL_bBLOOD4
+	{"{bblood5", 0},   // DECAL_bBLOOD5
+	{"{bblood6", 0},   // DECAL_bBLOOD6
 };
 
 /*

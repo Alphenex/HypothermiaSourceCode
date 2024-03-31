@@ -60,6 +60,7 @@ void CEgon::Precache()
 	PRECACHE_SOUND(EGON_SOUND_STARTUP);
 
 	m_usFlameID = PRECACHE_MODEL(EGON_FLAME_SPRITE);
+	m_usSmokeID = PRECACHE_MODEL(EGON_SMOKE_SPRITE);
 
 	PRECACHE_SOUND("weapons/357_cock1.wav");
 
@@ -243,13 +244,14 @@ void CEgon::Fire(const Vector& vecOrigSrc, const Vector& vecDir)
 			return;
 
 		pev->dmgtime = gpGlobals->time + GetDischargeInterval();
+
 		if (gpGlobals->time > m_shakeTime && gpGlobals->time > (m_flFireSoundLoopTimeOffset - 1.4f))
 		{
 			UTIL_ScreenShake(vecOrigSrc, 2.0f, 150.0f, 1.0f, 250.0f);
 
 			Vector attPos;
 			Vector attAng;
-			attPos = m_pPlayer->GetGunPosition() + gpGlobals->v_forward * 32 + gpGlobals->v_right * 12.0f + gpGlobals->v_up * -12.0f;
+			attPos = m_pPlayer->GetGunPosition() + gpGlobals->v_forward * 48.0f + gpGlobals->v_right * 12.0f + gpGlobals->v_up * -12.0f;
 			MESSAGE_BEGIN(MSG_PVS, SVC_TEMPENTITY, pev->origin);
 			WRITE_BYTE(TE_DLIGHT);
 			WRITE_COORD(attPos.x); // origin
@@ -263,8 +265,35 @@ void CEgon::Fire(const Vector& vecOrigSrc, const Vector& vecDir)
 			WRITE_BYTE(0);	 // decay
 			MESSAGE_END();
 
+			MESSAGE_BEGIN(MSG_PVS, SVC_TEMPENTITY, pev->origin);
+			WRITE_BYTE(TE_BUBBLETRAIL);
+			WRITE_COORD(attPos.x - 2.5f); // min
+			WRITE_COORD(attPos.y - 2.5f);
+			WRITE_COORD(attPos.z - 2.5f);
+			WRITE_COORD(attPos.x + 2.5f); // max
+			WRITE_COORD(attPos.y + 2.5f);
+			WRITE_COORD(attPos.z + 2.5f);
+			WRITE_COORD(125.0f);		   // fly up to
+			WRITE_SHORT(m_usSmokeID);		// sprite id
+			WRITE_BYTE(1);				   // amount
+			WRITE_COORD(0.05f);			   // speed
+			MESSAGE_END();
+
+			if (RANDOM_LONG(0, 100) < 20)
+			{
+				CFire* fire = CFire::SpawnFireAtPosition(attPos + Vector(0, 0, 16), RANDOM_FLOAT(0.0f, 10.0f), 0.0f, true);
+				fire->pev->velocity = (tr.vecEndPos - vecOrigSrc).Normalize() * RANDOM_FLOAT(750.0f, 1000.0f);
+				fire->pev->velocity = fire->pev->velocity +
+									  gpGlobals->v_forward * RANDOM_FLOAT(-64.0f, 64.0f) +
+									  gpGlobals->v_right * RANDOM_FLOAT(-64.0f, 64.0f) +
+									  gpGlobals->v_up * RANDOM_FLOAT(-64.0f, 64.0f);
+			}
+
 			if (pEntity != NULL && len <= 512.0f)	
+			{
+				pEntity->TakeDamage(pev, m_pPlayer->pev, 3.5f, DMG_BURN);
 				RadiusBurnUntilDead(tr.vecEndPos, m_pPlayer->pev, 5.0f, 256, CLASS_PLAYER, 10.0f);
+			}
 			
 			m_shakeTime = gpGlobals->time + 0.02f;
 		}

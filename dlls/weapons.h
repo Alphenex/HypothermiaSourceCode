@@ -144,6 +144,7 @@ public:
 #define SNARK_WEIGHT 5
 #define SATCHEL_WEIGHT -10
 #define TRIPMINE_WEIGHT -10
+#define M249_WEIGHT 20
 
 
 // weapon clip/carry ammo capacities
@@ -159,6 +160,7 @@ public:
 #define SNARK_MAX_CARRY 15
 #define HORNET_MAX_CARRY 8
 #define M203_GRENADE_MAX_CARRY 10
+#define M249_MAX_CARRY 200
 
 // the maximum amount of ammo each weapon's clip can hold
 #define WEAPON_NOCLIP -1
@@ -178,6 +180,7 @@ public:
 #define SATCHEL_MAX_CLIP WEAPON_NOCLIP
 #define TRIPMINE_MAX_CLIP WEAPON_NOCLIP
 #define SNARK_MAX_CLIP WEAPON_NOCLIP
+#define M249_MAX_CLIP 50
 
 
 // the default amount of ammo that comes with each gun when it spawns
@@ -196,6 +199,7 @@ public:
 #define TRIPMINE_DEFAULT_GIVE 1
 #define SNARK_DEFAULT_GIVE 5
 #define HIVEHAND_DEFAULT_GIVE 8
+#define M249_DEFAULT_GIVE 50
 
 // The amount of ammo given to a player by an ammo item.
 #define AMMO_URANIUMBOX_GIVE 20
@@ -682,7 +686,7 @@ class CMP5 : public CBasePlayerWeapon
 public:
 	void Spawn() override;
 	void Precache() override;
-	int iItemSlot() override { return 3; }
+	int iItemSlot() override { return 5; }
 	bool GetItemInfo(ItemInfo* p) override;
 
 	void PrimaryAttack() override;
@@ -987,6 +991,7 @@ enum EGON_FIRESTATE
 
 #define EGON_PRIMARY_VOLUME 450
 #define EGON_FLAME_SPRITE "sprites/hotglow2.spr"
+#define EGON_SMOKE_SPRITE "sprites/smokepuff.spr"
 #define EGON_SOUND_OFF "weapons/egon_off1.wav"
 #define EGON_SOUND_RUN "weapons/egon_run3.wav"
 #define EGON_SOUND_STARTUP "weapons/egon_windup2.wav"
@@ -1046,6 +1051,7 @@ private:
 	float m_flFireSoundLoopTimer; // because Goldsrc is very gay
 
 	unsigned short m_usFlameID;
+	unsigned short m_usSmokeID;
 };
 
 enum hgun_e
@@ -1268,4 +1274,79 @@ public:
 
 private:
 	unsigned short m_usSnarkFire;
+};
+
+enum M249Anim
+{
+	M249_SLOWIDLE = 0,
+	M249_IDLE2,
+	M249_RELOAD_START,
+	M249_RELOAD_END,
+	M249_HOLSTER,
+	M249_DRAW,
+	M249_SHOOT1,
+	M249_SHOOT2,
+	M249_SHOOT3
+};
+
+class CM249 : public CBasePlayerWeapon
+{
+public:
+#ifndef CLIENT_DLL
+	bool Save(CSave& save) override;
+	bool Restore(CRestore& restore) override;
+	static TYPEDESCRIPTION m_SaveData[];
+#endif
+
+	using BaseClass = CBasePlayerWeapon;
+
+	int iItemSlot() override { return 3; }
+
+	void Spawn() override;
+
+	void Precache() override;
+
+	bool Deploy() override;
+
+	void Holster() override;
+
+	void WeaponIdle() override;
+
+	void PrimaryAttack() override;
+
+	void Reload() override;
+
+	bool GetItemInfo(ItemInfo* p) override;
+
+	bool UseDecrement() override
+	{
+#if defined(CLIENT_WEAPONS)
+		return true;
+#else
+		return false;
+#endif
+	}
+
+	void GetWeaponData(weapon_data_t& data) override;
+
+	void SetWeaponData(const weapon_data_t& data) override;
+
+private:
+	static int RecalculateBody(int iClip);
+
+	unsigned short m_usFireM249;
+
+	float m_flNextAnimTime;
+
+	int m_iShell;
+
+	// Used to alternate between ejecting shells and links.
+	bool m_bAlternatingEject = false;
+	int m_iLink;
+	int m_iSmoke;
+	int m_iFire;
+
+	bool m_bReloading;
+	float m_flReloadStartTime;
+	float m_flReloadStart;
 };

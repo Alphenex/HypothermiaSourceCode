@@ -64,6 +64,7 @@ CHandGrenade g_HandGren;
 CSatchel g_Satchel;
 CTripmine g_Tripmine;
 CSqueak g_Snark;
+CM249 g_M249;
 
 
 /*
@@ -481,6 +482,7 @@ void HUD_InitClientWeapons()
 	HUD_PrepEntity(&g_Satchel, &player);
 	HUD_PrepEntity(&g_Tripmine, &player);
 	HUD_PrepEntity(&g_Snark, &player);
+	HUD_PrepEntity(&g_M249, &player);
 }
 
 /*
@@ -518,6 +520,7 @@ void HUD_SetLastOrg()
 		previousorigin[i] = g_finalstate->playerstate.origin[i] + g_finalstate->client.view_ofs[i];
 	}
 }
+
 
 /*
 =====================
@@ -602,6 +605,9 @@ void HUD_WeaponsPostThink(local_state_s* from, local_state_s* to, usercmd_t* cmd
 
 	case WEAPON_SNARK:
 		pWeapon = &g_Snark;
+		break;
+	case WEAPON_M249:
+		pWeapon = &g_M249;
 		break;
 	}
 
@@ -944,4 +950,12 @@ void DLLEXPORT HUD_PostRunCmd(struct local_state_s* from, struct local_state_s* 
 	// All games can use FOV state
 	g_lastFOV = to->client.fov;
 	g_CurrentWeaponId = to->client.m_iId;
+}
+
+void SetLocalBody(int id, int body)
+{
+	if (auto pWeapon = g_pWpns[id]; pWeapon)
+	{
+		pWeapon->pev->body = body;
+	}
 }

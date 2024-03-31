@@ -33,7 +33,7 @@ public:
 
 	static CFire* CreateFire();
 
-	static CFire* SpawnFireAtPosition(Vector vPos, float flLifetime, float flDamage = 5.0f);
+	static CFire* SpawnFireAtPosition(Vector vPos, float flLifetime, float flDamage = 5.0f, bool bGravity = false);
 	static CFire* BurnEntity(CBaseEntity* pEnt, CBaseEntity* pAttacker = nullptr, float flDamage = 5.0f, float flLifetime = -1.0f, bool charattached = true);
 	static CFire* BurnEntityUntilDead(CBaseEntity* pEnt, CBaseEntity* pAttacker = nullptr, float flDamage = 5.0f, bool charattached = true);
 	static CFire* BurnEntityUntilDeadWithLifetime(CBaseEntity* pEnt, CBaseEntity* pAttacker = nullptr, float flDamage = 5.0f, float flLifetime = -1.0f, bool charattached = true);
@@ -53,12 +53,13 @@ private:
 	float m_flLifeTime;
 	bool m_bActive;
 
-	edict_t* m_pAttachedEdict; // Edicts are generally safer, this is used so that once the Attached doesn't exist anymore we know about it.
-	BurnFlag m_bBurnAttachedTillDead;
+	EHANDLE m_pAttachedEdict;
+	BurnFlag m_bBurnFlag;
 	CBaseEntity* m_pOwner;
 	bool m_bSpawnedIn;
 	bool m_bCharAttached;
 
 	float m_fSmokeCreateTimer;
 	float m_fFireSoundTimer;
+	bool m_bGravity;
 };

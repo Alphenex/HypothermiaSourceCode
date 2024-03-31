@@ -375,6 +375,15 @@
     <ClCompile Include="MusicPlayer.cpp">
       <Filter>Source Files\dlls</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\dlls\COFAllyMonster.cpp">
+      <Filter>Source Files\dlls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\dlls\COFSquadTalkMonster.cpp">
+      <Filter>Source Files\dlls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\dlls\M249.cpp">
+      <Filter>Source Files\dlls</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\dlls\doors.h">
@@ -630,6 +639,12 @@
       <Filter>Header Files\public</Filter>
     </ClInclude>
     <ClInclude Include="..\..\dlls\Fire.h">
+      <Filter>Header Files\dlls</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\dlls\COFAllyMonster.h">
+      <Filter>Header Files\dlls</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\dlls\COFSquadTalkMonster.h">
       <Filter>Header Files\dlls</Filter>
     </ClInclude>
   </ItemGroup>

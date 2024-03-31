@@ -161,3 +161,22 @@ bool CHud::MsgFunc_Audio(const char* pszName, int iSize, void* pbuf)
 
 	return true;
 }
+
+bool CHud::MsgFunc_Flamespit(const char* pszName, int iSize, void* pbuf)
+{
+
+	BEGIN_READ(pbuf, iSize);
+
+	// Dir				3 coord (xyz)		6 bytes
+	// Origin			3 coord (xyz)		6 bytes
+	// Fadetime			1 coord (seconds)	2 bytes
+	// Sprite Amount	1 byte	(amount)	1 bytes
+	//										= 15 bytes
+
+	Vector org = { READ_COORD(), READ_COORD(), READ_COORD() };
+	Vector dir = { READ_COORD(), READ_COORD(), READ_COORD() };
+	float fadetime = READ_COORD();
+	char spramount = READ_BYTE();
+
+	return true;
+}

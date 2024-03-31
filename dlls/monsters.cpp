@@ -2211,7 +2211,7 @@ int CBaseMonster::IRelationship(CBaseEntity* pTarget)
 			/*MACHINE*/ {R_NO, R_NO, R_DL, R_DL, R_NO, R_DL, R_DL, R_DL, R_DL, R_DL, R_NO, R_DL, R_DL, R_DL},
 			/*PLAYER*/ {R_NO, R_DL, R_NO, R_NO, R_DL, R_DL, R_DL, R_DL, R_DL, R_DL, R_NO, R_NO, R_DL, R_DL},
 			/*HUMANPASSIVE*/ {R_NO, R_NO, R_AL, R_AL, R_HT, R_HT, R_NO, R_HT, R_DL, R_DL, R_NO, R_AL, R_NO, R_NO},
-			/*HUMANMILITAR*/ {R_NO, R_NO, R_HT, R_DL, R_NO, R_HT, R_DL, R_DL, R_DL, R_DL, R_NO, R_HT, R_NO, R_NO},
+			/*HUMANMILITAR*/ {R_NO, R_NO, R_HT, R_DL, R_AL, R_HT, R_DL, R_DL, R_DL, R_DL, R_NO, R_HT, R_NO, R_NO},
 			/*ALIENMILITAR*/ {R_NO, R_DL, R_HT, R_DL, R_HT, R_NO, R_NO, R_NO, R_NO, R_NO, R_NO, R_DL, R_NO, R_NO},
 			/*ALIENPASSIVE*/ {R_NO, R_NO, R_NO, R_NO, R_NO, R_NO, R_NO, R_NO, R_NO, R_NO, R_NO, R_NO, R_NO, R_NO},
 			/*ALIENMONSTER*/ {R_NO, R_DL, R_DL, R_DL, R_DL, R_NO, R_NO, R_NO, R_NO, R_NO, R_NO, R_DL, R_NO, R_NO},
@@ -2226,12 +2226,12 @@ int CBaseMonster::IRelationship(CBaseEntity* pTarget)
 		/*NONE*/		R_NO,
 		/*MACHINE*/		R_HT,
 		/*PLAYER*/		R_NO,
-		/*HUMANPASSIVE*/R_NO,
+		/*HUMANPASSIVE*/R_FR,
 		/*HUMANMILITAR*/R_HT,
 		/*ALIENMILITAR*/R_HT,
-		/*ALIENPASSIVE*/R_NO,
-		/*ALIENMONSTER*/R_NM,
-		/*ALIENPREY   */R_FR,
+		/*ALIENPASSIVE*/R_FR,
+		/*ALIENMONSTER*/R_HT,
+		/*ALIENPREY*/	R_FR,
 		/*ALIENPREDATO*/R_DL,
 		/*INSECT*/		R_NO,
 		/*PLAYERALLY*/	R_NO, // I mean.. if you are a player ally then you should ignore other player allies if you have diff faction.
@@ -2243,16 +2243,16 @@ int CBaseMonster::IRelationship(CBaseEntity* pTarget)
 	int TargetClass = pTarget->Classify();
 
 	int rel = iEnemy[MyClass][TargetClass];
-
-	if (targetmon->m_uiFactionID != 0)
+	
+	if (m_uiFactionID != 0)
 	{
-		//if (m_uiFactionID == -1 && targetmon->IsPlayer())
-		//	return R_AL;
+		if (m_uiFactionID == -1 && targetmon->IsPlayer())
+			return R_AL;
 
 		if (m_uiFactionID != targetmon->m_uiFactionID) return iFaction[Classify()];
 		else return R_AL;
 	}
-
+	
 	return rel;
 }
 

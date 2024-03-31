@@ -63,4 +63,6 @@ inline int gmsgAudio = 0;
 
 inline int gmsgCrosshair = 0;
 
+inline int gmsgFlamespit = 0;
+
 void LinkUserMessages();

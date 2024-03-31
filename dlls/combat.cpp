@@ -848,9 +848,7 @@ bool CBaseMonster::TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, f
 	if ((pev->flags & FL_MONSTER) != 0 && (bitsDamageType & DMG_BULLET) != 0 && !FNullEnt(pevAttacker))
 	{
 		CBaseEntity* pInflictor = CBaseEntity::Instance(pevInflictor);
-		Vector spraydir = (Center() - pInflictor->Center()).Normalize();
-		
-		// gay valve removed particles I think
+		Vector spraydir = (Center() - pInflictor->Center()).Normalize();		
 	}
 
 	if (!IsAlive())
@@ -973,8 +971,6 @@ bool CBaseMonster::TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, f
 			}
 		}
 	}
-
-	
 
 	return true;
 }

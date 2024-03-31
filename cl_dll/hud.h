@@ -632,6 +632,7 @@ public:
 	bool MsgFunc_Concuss(const char* pszName, int iSize, void* pbuf);
 	bool MsgFunc_Weapons(const char* pszName, int iSize, void* pbuf);
 	bool MsgFunc_Audio(const char* pszName, int iSize, void* pbuf);
+	bool MsgFunc_Flamespit(const char* pszName, int iSize, void* pbuf);
 
 	// Screen information
 	SCREENINFO m_scrinfo;

@@ -134,6 +134,11 @@ int __MsgFunc_Audio(const char* pszName, int iSize, void* pbuf)
 	return static_cast<int>(gHUD.MsgFunc_Audio(pszName, iSize, pbuf));
 }
 
+int __MsgFunc_Flamespit(const char* pszName, int iSize, void* pbuf)
+{
+	return static_cast<int>(gHUD.MsgFunc_Flamespit(pszName, iSize, pbuf));
+}
+
 int __MsgFunc_GameMode(const char* pszName, int iSize, void* pbuf)
 {
 	return static_cast<int>(gHUD.MsgFunc_GameMode(pszName, iSize, pbuf));
@@ -298,6 +303,7 @@ void CHud::Init()
 	HOOK_MESSAGE(Concuss);
 	HOOK_MESSAGE(Weapons);
 	HOOK_MESSAGE(Audio);
+	HOOK_MESSAGE(Flamespit);
 
 	// TFFree CommandMenu
 	HOOK_COMMAND("+commandmenu", OpenCommandMenu);

@@ -76,14 +76,14 @@ bool CGlock::GetItemInfo(ItemInfo* p)
 bool CGlock::Deploy()
 {
 	// pev->body = 1;
-	pev->fuser4 = 0.015f; // Primary attack one
+	pev->fuser4 = 0.01f; // Primary attack one
 	return DefaultDeploy("models/v_9mmhandgun.mdl", "models/p_9mmhandgun.mdl", GLOCK_DRAW, "onehanded");
 }
 
 void CGlock::PrimaryAttack()
 {
 	pev->fov += gpGlobals->frametime;
-	GlockFire(0.015f, 0.25f, true);
+	GlockFire(0.01f, 0.25f, true);
 }
 
 void CGlock::SecondaryAttack()
@@ -105,7 +105,7 @@ void CGlock::GlockFire(float flSpread, float flCycleTime, bool fUseAutoAim)
 	}
 
 	if (fUseAutoAim)
-		pev->fov += 1.5f * gpGlobals->frametime;
+		pev->fov += 1.75f * gpGlobals->frametime;
 	else
 		pev->fov += 0.75f * gpGlobals->frametime;
 

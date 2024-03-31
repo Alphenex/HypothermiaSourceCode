@@ -76,4 +76,6 @@ void LinkUserMessages()
 	gmsgAudio = REG_USER_MSG("Audio", -1);
 
 	gmsgCrosshair = REG_USER_MSG("Crosshair", 8);
+
+	gmsgFlamespit = REG_USER_MSG("Flamespit", 15);
 }

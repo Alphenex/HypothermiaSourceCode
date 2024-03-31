@@ -129,6 +129,8 @@ cmd /c ""$(ProjectDir)..\..\filecopy.bat" "$(SolutionDir)../../network" "" "delt
     <ClCompile Include="..\..\dlls\buttons.cpp" />
     <ClCompile Include="..\..\dlls\cbase.cpp" />
     <ClCompile Include="..\..\dlls\client.cpp" />
+    <ClCompile Include="..\..\dlls\COFAllyMonster.cpp" />
+    <ClCompile Include="..\..\dlls\COFSquadTalkMonster.cpp" />
     <ClCompile Include="..\..\dlls\combat.cpp" />
     <ClCompile Include="..\..\dlls\controller.cpp" />
     <ClCompile Include="..\..\dlls\crossbow.cpp" />
@@ -167,6 +169,7 @@ cmd /c ""$(ProjectDir)..\..\filecopy.bat" "$(SolutionDir)../../network" "" "delt
     <ClCompile Include="..\..\dlls\items.cpp" />
     <ClCompile Include="..\..\dlls\leech.cpp" />
     <ClCompile Include="..\..\dlls\lights.cpp" />
+    <ClCompile Include="..\..\dlls\M249.cpp" />
     <ClCompile Include="..\..\dlls\maprules.cpp" />
     <ClCompile Include="..\..\dlls\monstermaker.cpp" />
     <ClCompile Include="..\..\dlls\monsters.cpp" />
@@ -260,6 +263,8 @@ cmd /c ""$(ProjectDir)..\..\filecopy.bat" "$(SolutionDir)../../network" "" "delt
     <ClInclude Include="..\..\dlls\cbase.h" />
     <ClInclude Include="..\..\dlls\cdll_dll.h" />
     <ClInclude Include="..\..\dlls\client.h" />
+    <ClInclude Include="..\..\dlls\COFAllyMonster.h" />
+    <ClInclude Include="..\..\dlls\COFSquadTalkMonster.h" />
     <ClInclude Include="..\..\dlls\decals.h" />
     <ClInclude Include="..\..\dlls\defaultai.h" />
     <ClInclude Include="..\..\dlls\doors.h" />

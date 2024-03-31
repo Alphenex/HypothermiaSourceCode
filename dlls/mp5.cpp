@@ -91,7 +91,7 @@ bool CMP5::GetItemInfo(ItemInfo* p)
 
 bool CMP5::Deploy()
 {
-	pev->fuser4 = VECTOR_CONE_3DEGREES.x;
+	pev->fuser4 = VECTOR_CONE_2DEGREES.x;
 	return DefaultDeploy("models/v_9mmAR.mdl", "models/p_9mmAR.mdl", MP5_DEPLOY, "mp5");
 }
 
@@ -144,7 +144,7 @@ void CMP5::PrimaryAttack()
 	{
 		// single player spread
 		Vector fovvec = Vector(pev->fov, pev->fov, pev->fov);
-		vecDir = m_pPlayer->FireBulletsPlayer(1, vecSrc, vecAiming, VECTOR_CONE_3DEGREES + fovvec, 8192, BULLET_PLAYER_MP5, 2, 0, m_pPlayer->pev, m_pPlayer->random_seed);
+		vecDir = m_pPlayer->FireBulletsPlayer(1, vecSrc, vecAiming, VECTOR_CONE_2DEGREES + fovvec, 8192, BULLET_PLAYER_MP5, 2, 0, m_pPlayer->pev, m_pPlayer->random_seed);
 	}
 
 	int flags;
