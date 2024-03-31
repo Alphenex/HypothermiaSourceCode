@@ -68,6 +68,7 @@ TYPEDESCRIPTION CBasePlayer::m_playerSaveData[] =
 		DEFINE_FIELD(CBasePlayer, m_afButtonLast, FIELD_INTEGER),
 		DEFINE_FIELD(CBasePlayer, m_afButtonPressed, FIELD_INTEGER),
 		DEFINE_FIELD(CBasePlayer, m_afButtonReleased, FIELD_INTEGER),
+		DEFINE_FIELD(CBasePlayer, m_bKeySprintDown, FIELD_BOOLEAN),
 
 		DEFINE_ARRAY(CBasePlayer, m_rgItems, FIELD_INTEGER, MAX_ITEMS),
 		DEFINE_FIELD(CBasePlayer, m_afPhysicsFlags, FIELD_INTEGER),
@@ -118,7 +119,9 @@ TYPEDESCRIPTION CBasePlayer::m_playerSaveData[] =
 
 		DEFINE_FIELD(CBasePlayer, m_flStartCharge, FIELD_TIME),
 		DEFINE_FIELD(CBasePlayer, m_flStamina, FIELD_FLOAT),
-		DEFINE_FIELD(CBasePlayer, m_flWeaponDropTimer, FIELD_FLOAT)
+		DEFINE_FIELD(CBasePlayer, m_flWeaponDropTimer, FIELD_FLOAT),
+		DEFINE_FIELD(CBasePlayer, m_flCold, FIELD_FLOAT),
+		DEFINE_FIELD(CBasePlayer, m_bCloseToHeat, FIELD_BOOLEAN)
 
 		//DEFINE_FIELD( CBasePlayer, m_fDeadTime, FIELD_FLOAT ), // only used in multiplayer games
 		//DEFINE_FIELD( CBasePlayer, m_fGameHUDInitialized, FIELD_INTEGER ), // only used in multiplayer games
@@ -1796,9 +1799,27 @@ void CBasePlayer::PreThink()
 
 	if (g_fGameOver)
 		return; // intermission or finale
+
+	CBaseEntity* pEntity = nullptr;
+	int iHeatSources = 0;
 	
-	int run = (pev->button & IN_SCORE) != 0;
-	int runNSuitNStamina = run * (int)HasSuit() * (m_flStamina >= 1.0) ? 1 : 0;
+	while ((pEntity = UTIL_FindEntityByClassname(pEntity, "env_fire")) != NULL)
+	{
+		float heatSourceDist = (pev->origin - pEntity->pev->origin).Length();
+		
+		if (pEntity && heatSourceDist < 196.0f)
+			iHeatSources++;
+
+		if (!pEntity)
+			break;
+	}
+
+	if (iHeatSources > 0)
+		m_bCloseToHeat = true;
+	else
+		m_bCloseToHeat = false;
+
+	int runNSuitNStamina = m_bKeySprintDown * (int)HasSuit() * (m_flStamina >= 1.0) ? 1 : 0;
 	if (pev->button & IN_FORWARD)
 		pev->maxspeed = 175 + 175 * runNSuitNStamina;
 	else 
@@ -1807,11 +1828,11 @@ void CBasePlayer::PreThink()
 	if (HasSuit())
 	{
 		bool moving = (pev->button & (IN_FORWARD | IN_BACK | IN_MOVELEFT | IN_MOVERIGHT)) != 0;
-		if ((!run || !moving) && gpGlobals->time > m_flStaminaTimer) // if we aint running then slowly fill our stamina
+		if ((!m_bKeySprintDown || !moving) && gpGlobals->time > m_flStaminaTimer) // if we aint running then slowly fill our stamina
 			m_flStamina += 5.0f * gpGlobals->frametime;
-		else if (run && moving && !FBitSet(pev->flags, FL_FLY))
+		else if (m_bKeySprintDown && moving && !FBitSet(pev->flags, FL_FLY))
 		{
-			m_flStamina -= 10.0f * gpGlobals->frametime;
+			m_flStamina -= 6.75f * gpGlobals->frametime;
 		}
 	}
 
@@ -1827,6 +1848,14 @@ void CBasePlayer::PreThink()
 
 		m_flStamina = 0;
 	}
+
+	if (m_bCloseToHeat)
+		m_flCold -= 10.0f * gpGlobals->frametime;
+
+	if (m_flCold > 100.0f)
+		m_flCold = 100.0f;
+	else if (m_flCold < 0)
+		m_flCold = 0.0f;
 
 	UTIL_MakeVectors(pev->v_angle); // is this still used?
 

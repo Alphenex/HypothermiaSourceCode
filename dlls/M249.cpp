@@ -45,7 +45,7 @@ bool CM249::Deploy()
 	Vector vecSpread;
 
 	if ((m_pPlayer->pev->button & IN_DUCK) != 0)
-		vecSpread = VECTOR_CONE_2DEGREES;
+		vecSpread = VECTOR_CONE_1DEGREES;
 	else if ((m_pPlayer->pev->button & (IN_MOVERIGHT | IN_MOVELEFT | IN_FORWARD | IN_BACK)) != 0)
 		vecSpread = VECTOR_CONE_10DEGREES;
 	else
@@ -110,9 +110,9 @@ void CM249::WeaponIdle()
 	Vector vecSpread;
 
 	if ((m_pPlayer->pev->button & IN_DUCK) != 0)
-		vecSpread = VECTOR_CONE_2DEGREES;
+		vecSpread = VECTOR_CONE_1DEGREES;
 	else if ((m_pPlayer->pev->button & (IN_MOVERIGHT | IN_MOVELEFT | IN_FORWARD | IN_BACK)) != 0)
-		vecSpread = VECTOR_CONE_10DEGREES + VECTOR_CONE_5DEGREES * ((m_pPlayer->pev->button & IN_SCORE) != 0);
+		vecSpread = VECTOR_CONE_10DEGREES + VECTOR_CONE_5DEGREES * m_pPlayer->m_bKeySprintDown;
 	else
 		vecSpread = VECTOR_CONE_4DEGREES;
 
@@ -162,7 +162,7 @@ void CM249::PrimaryAttack()
 	Vector vecAiming = m_pPlayer->GetAutoaimVector(AUTOAIM_5DEGREES);
 
 
-	pev->fov += 1.5f *gpGlobals->frametime;
+	pev->fov += gpGlobals->frametime;
 	pev->fov = std::clamp<float>(pev->fov, 0.0f, 0.75f);
 	Vector fovvec = Vector(pev->fov, pev->fov, pev->fov);
 
@@ -199,7 +199,7 @@ void CM249::PrimaryAttack()
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.2;
 
 #ifndef CLIENT_DLL
-	m_pPlayer->pev->punchangle.x = RANDOM_FLOAT(-2, 2);
+	m_pPlayer->pev->punchangle.x = RANDOM_FLOAT(-1, 1);
 
 	m_pPlayer->pev->punchangle.y = RANDOM_FLOAT(-1, 1);
 #endif

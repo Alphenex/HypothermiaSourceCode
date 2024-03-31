@@ -383,6 +383,8 @@ public:
 	bool Draw(float flTime) override;
 	void Reset() override;
 	bool MsgFunc_Stamina(const char* pszName, int iSize, void* pbuf);
+	void UserCmd_SprintDown();
+	void UserCmd_SprintUp();
 
 	float m_flStamina;
 	float m_flStaminaAlpha;

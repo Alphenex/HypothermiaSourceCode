@@ -1856,6 +1856,49 @@ void CTriggerPush::Touch(CBaseEntity* pOther)
 }
 
 
+class CTriggerFreeze : public CBaseTrigger
+{
+public:
+	void Spawn() override;
+	void Touch(CBaseEntity* pOther) override;
+	void HurtPlayer(CBaseEntity* pOther);
+};
+LINK_ENTITY_TO_CLASS(trigger_freeze, CTriggerFreeze)
+
+void CTriggerFreeze::Spawn()
+{
+	InitTrigger();
+	m_bitsDamageInflict = DMG_SLOWFREEZE;
+}
+
+void CTriggerFreeze::Touch(CBaseEntity* pOther)
+{
+	if (pOther && pOther->IsPlayer())
+	{
+		CBasePlayer* ply = (CBasePlayer*)pOther;
+
+		if (ply->m_flCold >= 100.0f && !ply->m_bCloseToHeat) HurtPlayer(pOther);
+
+		if (!ply->m_pFire && !ply->m_bCloseToHeat)
+			ply->m_flCold += 7.5f * gpGlobals->frametime;
+	}
+}
+
+void CTriggerFreeze::HurtPlayer(CBaseEntity* pOther)
+{
+	if (!pOther->IsAlive())
+		return; // Why should we hurt a dead ass guy?
+	if (pOther->pev->takedamage == 0 || pev->dmgtime > gpGlobals->time && gpGlobals->time != pev->pain_finished)
+		return;
+
+	float fldmg = 10.0f;
+
+	pOther->TakeDamage(pev, pev, fldmg, DMG_SLOWFREEZE);
+
+	pev->pain_finished = gpGlobals->time;
+	pev->dmgtime = gpGlobals->time + 1.0f;
+}
+
 //======================================
 // teleport trigger
 //

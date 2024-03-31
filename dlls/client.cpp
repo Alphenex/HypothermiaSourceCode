@@ -619,6 +619,14 @@ void ClientCommand(edict_t* pEntity)
 		if (player->IsObserver())
 			player->Observer_FindNextPlayer(atoi(CMD_ARGV(1)) != 0);
 	}
+	else if (FStrEq(pcmd, "+sprint"))
+	{
+		player->m_bKeySprintDown = true;
+	}
+	else if (FStrEq(pcmd, "-sprint"))
+	{
+		player->m_bKeySprintDown = false;
+	}
 	else if (g_pGameRules->ClientCommand(player, pcmd))
 	{
 		// MenuSelect returns true only if the command is properly handled,  so don't print a warning

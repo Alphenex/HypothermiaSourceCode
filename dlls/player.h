@@ -114,6 +114,7 @@ public:
 	int m_afButtonLast;
 	int m_afButtonPressed;
 	int m_afButtonReleased;
+	bool m_bKeySprintDown;
 
 	EHANDLE m_SndLast;	   // last sound entity to modify player room type
 	int m_SndRoomtype = 0; // last roomtype set by sound entity. Defaults to 0 on new maps to disable it by default.
@@ -140,6 +141,10 @@ public:
 	// Player Stamina
 	float m_flStamina;
 	float m_flStaminaTimer; // Once we run out of stamina, this is how long it will take to start refilling
+
+	// Freeze
+	float m_flCold;
+	bool m_bCloseToHeat;
 
 	float m_flSuitUpdate;						 // when to play next suit update
 	int m_rgSuitPlayList[CSUITPLAYLIST];		 // next sentencenum to play for suit update

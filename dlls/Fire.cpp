@@ -42,7 +42,7 @@ bool CFire::KeyValue(KeyValueData* pkvd)
 #define FIRE_LOOPSOUNDLENGTH 5
 
 void CFire::Precache()
-{
+{ 
 	PRECACHE_MODEL(FIRE_SPRITE);
 	PRECACHE_MODEL(FIREGLOW_SPRITE);
 	m_iSmokeSpriteID = PRECACHE_MODEL(SMOKE_SPRITE);
@@ -52,6 +52,8 @@ void CFire::Precache()
 void CFire::Spawn()
 {
 	Precache();
+
+	pev->classname = MAKE_STRING("env_fire");
 
 	if (m_bGravity == false)
 		pev->movetype = MOVETYPE_NONE;
@@ -76,7 +78,7 @@ void CFire::Spawn()
 		else
 			pev->ltime = -1; // Fire will basically never gonna die.
 	}
-
+	
 	if (m_pFireSprite)
 		m_pFireSprite->pev->frame = RANDOM_LONG(0, m_pFireSprite->Frames() - 1);
 

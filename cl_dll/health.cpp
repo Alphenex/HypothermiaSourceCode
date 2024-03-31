@@ -456,7 +456,7 @@ void CHudHealth::UpdateTiles(float flTime, long bitsDamage)
 		if ((bitsOn & giDmgFlags[i]) != 0)
 		{
 			// put this one at the bottom
-			pdmg->x = giDmgWidth / 8;
+			pdmg->x = giDmgWidth / 8 + 8;
 			pdmg->y = ScreenHeight - giDmgHeight * 2;
 			pdmg->fExpire = flTime + DMG_IMAGE_LIFE;
 

@@ -11,6 +11,9 @@ cvar_t* stamhide;
 
 DECLARE_MESSAGE(m_Stamina, Stamina)
 
+DECLARE_COMMAND(m_Stamina, SprintDown)
+DECLARE_COMMAND(m_Stamina, SprintUp)
+
 bool CHudStamina::MsgFunc_Stamina(const char* pszName, int iSize, void* pbuf)
 {
 	BEGIN_READ(pbuf, iSize);
@@ -23,16 +26,34 @@ bool CHudStamina::MsgFunc_Stamina(const char* pszName, int iSize, void* pbuf)
 	return true;
 }
 
+static bool m_bSprinting;
+
+void CHudStamina::UserCmd_SprintDown()
+{
+	m_bSprinting = true;
+	ServerCmd("+sprint");
+}
+
+void CHudStamina::UserCmd_SprintUp()
+{
+	m_bSprinting = false;
+	ServerCmd("-sprint");
+}
+
 bool CHudStamina::Init()
 {
 	HOOK_MESSAGE(Stamina);
-	m_flStamina = 100.0f;
-	m_flStaminaAlpha = 0.0f;
+	HOOK_COMMAND("+sprint", SprintDown);
+	HOOK_COMMAND("-sprint", SprintUp);
 
 	gHUD.AddHudElem(this);
 
-	stamhide = CVAR_CREATE("cl_staminahide", "0", 0);
+	m_flStamina = 100.0f;
+	m_flStaminaAlpha = 0.0f;
+	m_bSprinting = false;
 
+	stamhide = CVAR_CREATE("cl_staminahide", "0", 0);
+	
 	return true;
 }
 
@@ -47,7 +68,6 @@ static float lerp(float a, float b, float f)
 }
 
 static float sign = -1;
-
 bool CHudStamina::Draw(float flTime)
 {
 	int r, g, b, x, y;
@@ -56,7 +76,7 @@ bool CHudStamina::Draw(float flTime)
 	if (CVAR_GET_FLOAT("cl_staminahide") == 1)
 		return true;
 
-	bool pressingshift = (gHUD.m_iKeyBits & (IN_SCORE)) != 0;
+	bool pressingshift = m_bSprinting;
 	bool moving = (gHUD.m_iKeyBits & (IN_FORWARD | IN_BACK | IN_MOVELEFT | IN_MOVERIGHT)) != 0;
 
 	m_flStaminaAlpha += 200.0f * sign * gHUD.m_flTimeDelta;
