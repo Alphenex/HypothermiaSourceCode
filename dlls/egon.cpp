@@ -292,7 +292,7 @@ void CEgon::Fire(const Vector& vecOrigSrc, const Vector& vecDir)
 			if (pEntity != NULL && len <= 512.0f)	
 			{
 				pEntity->TakeDamage(pev, m_pPlayer->pev, 3.5f, DMG_BURN);
-				RadiusBurnUntilDead(tr.vecEndPos, m_pPlayer->pev, 5.0f, 256, CLASS_PLAYER, 10.0f);
+				RadiusBurnUntilDead(tr.vecEndPos, m_pPlayer->pev, 5.0f, 256, CLASS_PLAYER, 1.0f);
 			}
 			
 			m_shakeTime = gpGlobals->time + 0.02f;

@@ -1,5 +1,6 @@
 #include "Fire.h"
 #include "player.h"
+#include "monsters.h"
 
 #include <algorithm>
 
@@ -63,7 +64,7 @@ void CFire::Spawn()
 
 	if (!m_bSpawnedIn)
 	{
-		UTIL_SetSize(pev, Vector(-48, -48, -16), Vector(48, 48, 48));
+		UTIL_SetSize(pev, Vector(-32, -32, -24), Vector(32, 32, 32));
 		pev->scale = 1.0f;
 		StartFire(); // Then create fire immediately, used so that map entities automatically start fire.
 	}
@@ -101,7 +102,7 @@ void CFire::Think()
 
 	if ((FBitSet(m_bBurnFlag, FBURN_LIFETIME) && gpGlobals->time > pev->ltime && pev->ltime != -1 && m_bActive) || // If the lifetime is passed.
 		(animattached && FBitSet(m_bBurnFlag, FBURN_UNTILDEAD) && !animattached->IsAlive() && m_bActive) || // If we have attached object, have Kill flag, and it is dead.
-		(m_pAttachedEdict.Get() && animattached == nullptr)) // If attachment edict exists but it doesn't have private data.
+		(m_bSpawnedIn && animattached == nullptr))																   // If attachment edict exists but it doesn't have private data.
 	{
 		KillFire();
 		return;
@@ -112,12 +113,6 @@ void CFire::Think()
 	{
 		m_pFireSprite->SetScale(timeleft);
 		m_pFireGlowSprite->SetScale(timeleft);
-	}
-
-	if (FBitSet(m_bBurnFlag, FBURN_UNTILDEADWLIFETIME) && m_bActive && !animattached->IsAlive() && pev->ltime == 0.0f)
-	{
-		m_bBurnFlag = FBURN_LIFETIME;
-		pev->ltime = gpGlobals->time + m_flLifeTime;
 	}
 
 	if (m_bActive)
@@ -133,11 +128,16 @@ void CFire::Think()
 			if (attpelvispos == Vector(0, 0, 0))
 				attpelvispos = animattached->Center();
 			pev->origin = attpelvispos; // Move with the attached object!
+			if (!animattached->IsAlive() && pev->ltime == 0.0f)
+			{
+				m_bBurnFlag = FBURN_LIFETIME;
+				pev->ltime = gpGlobals->time + m_flLifeTime;
+			}
 
 			HurtEntity(this, animattached);
 		}
 
-		Vector norg = pev->origin + Vector(0, 0, (pev->mins.z + pev->maxs.z - 8 * (!m_bSpawnedIn || m_bGravity)) * 0.5);
+		Vector norg = pev->origin + Vector(0, 0, (pev->mins.z + pev->maxs.z) * 0.5);
 
 		if (m_pFireSprite)
 		{
@@ -170,7 +170,7 @@ void CFire::Think()
 		{
 			if (gpGlobals->time > m_fFireSoundTimer)
 			{
-				EMIT_SOUND_DYN2(edict(), CHAN_VOICE, FIRE_LOOPSOUND, 1.0f, 0.5f, 0, PITCH_NORM + pev->idealpitch);
+				EMIT_SOUND_DYN2(edict(), CHAN_VOICE, FIRE_LOOPSOUND, 0.75f, 0.5f, 0, PITCH_NORM + pev->idealpitch);
 				m_fFireSoundTimer = gpGlobals->time + FIRE_LOOPSOUNDLENGTH;
 			}
 
@@ -359,7 +359,7 @@ void CFire::HurtEntity(CFire* self, CBaseEntity* pEnt)
 	if (pEnt->pev->takedamage == 0) return;
 	if (self->pev->dmgtime > gpGlobals->time && gpGlobals->time != self->pev->pain_finished) return;
 
-	float fldmg = self->pev->dmg * 0.5f;
+	float fldmg = self->pev->dmg;
 
 	if (!self->m_pOwner) pEnt->TakeDamage(self->pev, self->pev, fldmg, DMG_BURN);
 	else pEnt->TakeDamage(self->pev, self->m_pOwner->pev, fldmg, DMG_BURN);

@@ -1868,7 +1868,6 @@ LINK_ENTITY_TO_CLASS(trigger_freeze, CTriggerFreeze)
 void CTriggerFreeze::Spawn()
 {
 	InitTrigger();
-	m_bitsDamageInflict = DMG_SLOWFREEZE;
 }
 
 void CTriggerFreeze::Touch(CBaseEntity* pOther)
@@ -1880,7 +1879,7 @@ void CTriggerFreeze::Touch(CBaseEntity* pOther)
 		if (ply->m_flCold >= 100.0f && !ply->m_bCloseToHeat) HurtPlayer(pOther);
 
 		if (!ply->m_pFire && !ply->m_bCloseToHeat)
-			ply->m_flCold += 7.5f * gpGlobals->frametime;
+			ply->m_flCold += 10.0f * gpGlobals->frametime;
 	}
 }
 

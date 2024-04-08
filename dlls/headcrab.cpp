@@ -487,6 +487,8 @@ public:
 	Schedule_t* GetScheduleOfType(int Type) override;
 	int GetVoicePitch() override { return PITCH_NORM + RANDOM_LONG(40, 50); }
 	float GetSoundVolue() override { return 0.8; }
+
+	void Killed(entvars_t* pevAttacker, int iGib) override;
 };
 LINK_ENTITY_TO_CLASS(monster_babycrab, CBabyCrab);
 
@@ -547,4 +549,11 @@ Schedule_t* CBabyCrab::GetScheduleOfType(int Type)
 	}
 
 	return CHeadCrab::GetScheduleOfType(Type);
+}
+
+void CBabyCrab::Killed(entvars_t* pevAttacker, int iGib)
+{
+	SetThink(&CBabyCrab::SUB_Remove);
+
+	CBaseMonster::Killed(pevAttacker, GIB_NEVER);
 }

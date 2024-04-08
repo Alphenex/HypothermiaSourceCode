@@ -14,6 +14,7 @@ DECLARE_MESSAGE(m_Stamina, Stamina)
 DECLARE_COMMAND(m_Stamina, SprintDown)
 DECLARE_COMMAND(m_Stamina, SprintUp)
 
+
 bool CHudStamina::MsgFunc_Stamina(const char* pszName, int iSize, void* pbuf)
 {
 	BEGIN_READ(pbuf, iSize);
@@ -31,13 +32,16 @@ static bool m_bSprinting;
 void CHudStamina::UserCmd_SprintDown()
 {
 	m_bSprinting = true;
-	ServerCmd("+sprint");
+	
+	if (gHUD.HasSuit())
+		ServerCmd("+sprint");
 }
 
 void CHudStamina::UserCmd_SprintUp()
 {
 	m_bSprinting = false;
-	ServerCmd("-sprint");
+	if (gHUD.HasSuit())
+		ServerCmd("-sprint");
 }
 
 bool CHudStamina::Init()

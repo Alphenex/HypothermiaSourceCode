@@ -1388,7 +1388,8 @@ TYPEDESCRIPTION CEgon::m_SaveData[] =
 		DEFINE_FIELD(CEgon, m_shootTime, FIELD_TIME),
 		DEFINE_FIELD(CEgon, m_fireState, FIELD_INTEGER),
 		DEFINE_FIELD(CEgon, m_flAmmoUseTime, FIELD_TIME),
-};
+		DEFINE_FIELD(CEgon, m_flFireSoundLoopTimeOffset, FIELD_TIME),
+		DEFINE_FIELD(CEgon, m_flFireSoundLoopTimer, FIELD_TIME)};
 IMPLEMENT_SAVERESTORE(CEgon, CBasePlayerWeapon);
 
 TYPEDESCRIPTION CHgun::m_SaveData[] =

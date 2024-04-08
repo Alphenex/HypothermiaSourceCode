@@ -335,18 +335,18 @@ void CBasePlayer::TraceAttack(entvars_t* pevAttacker, float flDamage, Vector vec
 		case HITGROUP_RIGHTARM:
 			flDamage *= gSkillData.plrArm;
 
-			if (IsBulletDMG && DropWeaponRNG < 10 && gpGlobals->time > m_flWeaponDropTimer)
+			if (IsBulletDMG && DropWeaponRNG < 5 && gpGlobals->time > m_flWeaponDropTimer)
 			{
-				[=]() -> void 
-				{
-					for (unsigned int i = 0; i < 2; i++)
-						if (FStrEq(m_pActiveItem->pszName(), sBannedWeapons[i]))
-							return;
-				
-					DropPlayerItem("");
-				};
+				bool bDrop = true;
+				for (unsigned int i = 0; i < 2; i++)
+					if (FStrEq(m_pActiveItem->pszName(), sBannedWeapons[i]))
+						bDrop = false;
 
-				m_flWeaponDropTimer = gpGlobals->time + 5.0f;
+				if (bDrop)
+				{
+					DropPlayerItem("");
+					m_flWeaponDropTimer = gpGlobals->time + 5.0f;
+				}
 			}
 
 			break;
@@ -848,6 +848,11 @@ void CBasePlayer::Killed(entvars_t* pevAttacker, int iGib)
 	WRITE_FLOAT(m_flClientSpread);
 	WRITE_FLOAT(m_flClientWpncone);
 	MESSAGE_END();
+
+	//m_flClientCold = 0.0f;
+	//MESSAGE_BEGIN(MSG_ONE, gmsgCold, NULL, pev);
+	//WRITE_COORD(m_flClientCold);
+	//MESSAGE_END();
 
 	// Tell Ammo Hud that the player is dead
 	MESSAGE_BEGIN(MSG_ONE, gmsgCurWeapon, NULL, pev);
@@ -1800,29 +1805,10 @@ void CBasePlayer::PreThink()
 	if (g_fGameOver)
 		return; // intermission or finale
 
-	CBaseEntity* pEntity = nullptr;
-	int iHeatSources = 0;
-	
-	while ((pEntity = UTIL_FindEntityByClassname(pEntity, "env_fire")) != NULL)
-	{
-		float heatSourceDist = (pev->origin - pEntity->pev->origin).Length();
-		
-		if (pEntity && heatSourceDist < 196.0f)
-			iHeatSources++;
-
-		if (!pEntity)
-			break;
-	}
-
-	if (iHeatSources > 0)
-		m_bCloseToHeat = true;
-	else
-		m_bCloseToHeat = false;
-
 	int runNSuitNStamina = m_bKeySprintDown * (int)HasSuit() * (m_flStamina >= 1.0) ? 1 : 0;
 	if (pev->button & IN_FORWARD)
 		pev->maxspeed = 175 + 175 * runNSuitNStamina;
-	else 
+	else
 		pev->maxspeed = 125 + 60 * runNSuitNStamina;
 
 	if (HasSuit())
@@ -1849,8 +1835,26 @@ void CBasePlayer::PreThink()
 		m_flStamina = 0;
 	}
 
-	if (m_bCloseToHeat)
-		m_flCold -= 10.0f * gpGlobals->frametime;
+	CBaseEntity* pEntity = nullptr;
+	int iHeatSources = 0;
+
+	while ((pEntity = UTIL_FindEntityByClassname(pEntity, "env_fire")) != NULL)
+	{
+		float heatSourceDist = (pev->origin - pEntity->pev->origin).Length();
+
+		if (pEntity && heatSourceDist < 196.0f)
+			iHeatSources++;
+
+		if (!pEntity)
+			break;
+	}
+
+	if (iHeatSources > 0)
+		m_bCloseToHeat = true;
+	else
+		m_bCloseToHeat = false;
+
+	m_flCold -= 6.6f * gpGlobals->frametime;
 
 	if (m_flCold > 100.0f)
 		m_flCold = 100.0f;
@@ -4153,7 +4157,18 @@ void CBasePlayer::UpdateClientData()
 			m_flClientWpncone = item->pev->fuser4;
 		}
 	}
-	
+
+	//float cold = roundf(m_flCold * 100) / 100;
+	//float clientcold = roundf(m_flClientCold * 100) / 100;
+	//if (cold != clientcold)
+	//{
+	//	MESSAGE_BEGIN(MSG_ONE, gmsgCold, NULL, pev);
+	//	WRITE_COORD(m_flCold);
+	//	MESSAGE_END();
+	//
+	//	m_flClientCold = m_flCold;
+	//}
+
 	if (pev->armorvalue != m_iClientBattery)
 	{
 		m_iClientBattery = pev->armorvalue;
